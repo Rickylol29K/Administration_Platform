@@ -1,0 +1,62 @@
+@page
+@model AdministrationPlat.Pages.Shared.Teacher.Attendance
+
+@{
+    Layout = "Shared/TeacherLayout";
+}
+
+<!DOCTYPE html>
+
+<link rel="stylesheet" href="~/css/Teacher/AttendanceTeacher.css" />
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<div>
+    <form method="post">
+        <label for="Classes">Choose Class:</label>
+        <select id="Classes" name="SelectedClass">
+            <option value="example1">Example1</option>
+            <option value="example2">Example2</option>
+            <option value="example3">Example3</option>
+            <option value="example4">Example4</option>
+        </select>
+
+        <button id="confirmButton" asp-page-handler="ShowOverlay">Confirm</button>
+
+        @if (Model.ShowOverlay)
+        {
+        <div id="overlayBackground">
+            <div id="overlayContent">
+                <h2>Take Attendance</h2>
+                <p>Class: Example1</p>
+                <p>Date: @DateTime.Now.ToShortDateString()</p>
+
+                <div class="studentList">
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                    <label><input type="checkbox" />Example Student</label>
+                </div>
+
+                <div class="overlayButtons">
+                    <button type="submit" asp-page-handler="SaveAttendance" class="saveButton">Save Attendance</button>
+                    <button type="submit" asp-page-handler="HideOverlay" class="cancelButton">Cancel</button>
+                </div>
+            </div>
+        </div>
+        }
+    </form>
+</div>
+</body>
+</html>

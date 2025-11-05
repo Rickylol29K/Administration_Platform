@@ -1,0 +1,102 @@
+@page
+@model AdministrationPlat.Pages.Teacher.CalendarModel
+
+
+
+
+@{
+    Layout = "Shared/TeacherLayout";
+    
+    
+}
+
+<link rel="stylesheet" href="~/css/Teacher/CalendarStyle.css" /> 
+
+<div class="calendar-container">
+    <div class="calendar-header">
+        <h2>@Model.MonthName @Model.Year</h2>
+    </div>
+
+    <form method="post">
+        <div class="calendar-weekdays">
+            <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
+        </div>
+
+        <div class="calendar-days">
+            @foreach (var day in Model.Days)
+            {
+                var hasEvent = Model.DayEvents.Any(e => e.Day == day);
+
+                <button type="submit"
+                        asp-page-handler="ShowOverlay"
+                        name="selectedDay"
+                        value="@day"
+                        class="calendar-day @(hasEvent ? "has-event" : "")">
+                    <span>@day</span>
+                    @if (hasEvent)
+                    {
+                        <div class="dot"></div>
+                    }
+                </button>
+            }
+        </div>
+    </form>
+
+    @if (Model.ShowOverlay)
+    {
+        <div id="overlayBackground">
+            <div id="overlayContent">
+                <h3>Events for @Model.SelectedDay @Model.MonthName</h3>
+
+                <div class="event-list">
+                    @if (Model.DayEvents.Any())
+                    {
+                        foreach (var ev in Model.DayEvents)
+                        {
+                            <div class="event-item">
+                                <strong>@ev.Title</strong><br />
+                                <small>@ev.Time — @ev.Location</small><br />
+                                <p>@ev.Description</p>
+                                <form method="post">
+                                    <input type="hidden" name="id" value="@ev.Id" />
+                                    <input type="hidden" name="selectedDay" value="@Model.SelectedDay" />
+                                    <button type="submit" asp-page-handler="EditEvent" class="edit-btn">Edit</button>
+                                    <button type="submit" asp-page-handler="DeleteEvent" class="delete-btn">Delete</button>
+                                </form>
+                            </div>
+                        }
+                    }
+                    else
+                    {
+                        <p>No events yet.</p>
+                    }
+                </div>
+
+                <hr />
+
+                <h4>@(Model.EditingId == Guid.Empty ? "Add Event" : "Edit Event")</h4>
+                <form method="post">
+                    <input type="hidden" name="selectedDay" value="@Model.SelectedDay" />
+                    <input type="hidden" asp-for="NewEvent.Id" />
+                    <input type="text" asp-for="NewEvent.Title" placeholder="Title" required />
+                    <input type="text" asp-for="NewEvent.Time" placeholder="Time (e.g., 14:00)" />
+                    <input type="text" asp-for="NewEvent.Location" placeholder="Location" />
+                    <textarea asp-for="NewEvent.Description" placeholder="Description"></textarea>
+
+                    @if (Model.EditingId == Guid.Empty)
+                    {
+                        <button type="submit" asp-page-handler="AddEvent" class="save-btn">Add</button>
+                    }
+                    else
+                    {
+                        <button type="submit" asp-page-handler="UpdateEvent" class="save-btn">Update</button>
+                    }
+                </form>
+
+                <form method="post">
+                    <button type="submit" asp-page-handler="HideOverlay" class="cancel-btn">Close</button>
+                </form>
+            </div>
+        </div>
+    }
+</div>

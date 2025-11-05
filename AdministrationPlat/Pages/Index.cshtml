@@ -1,0 +1,32 @@
+﻿@page
+@model AdministrationPlat.Pages.IndexModel
+@{
+    ViewData["Title"] = "Login / Register";
+}
+
+<div style="display: flex; justify-content: center; align-items: center; height: 100vh;">
+    <div style="width: 400px; background: #f5f5f5; padding: 30px; border-radius: 12px; box-shadow: 0 0 10px rgba(0,0,0,0.1);">
+        <h2 style="text-align: center;">Teacher Portal</h2>
+
+        @if (!string.IsNullOrEmpty(Model.Message))
+        {
+            <div style="background: #ffefef; padding: 10px; border-radius: 6px; color: #b00000; text-align: center; margin-bottom: 15px;">
+                @Model.Message
+            </div>
+        }
+
+        <form method="post" asp-page-handler="Login" style="margin-bottom: 20px;">
+            <h3>Login</h3>
+            <input type="text" asp-for="LoginUsername" placeholder="Username" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+            <input type="password" asp-for="LoginPassword" placeholder="Password" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #0078d7; color: white; border: none; border-radius: 5px;">Login</button>
+        </form>
+
+        <form method="post" asp-page-handler="Register">
+            <h3>Register</h3>
+            <input type="text" asp-for="RegisterUsername" placeholder="Choose username" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+            <input type="password" asp-for="RegisterPassword" placeholder="Choose password" style="width: 100%; padding: 8px; margin-bottom: 10px;" />
+            <button type="submit" style="width: 100%; padding: 10px; background-color: #00b300; color: white; border: none; border-radius: 5px;">Register</button>
+        </form>
+    </div>
+</div>

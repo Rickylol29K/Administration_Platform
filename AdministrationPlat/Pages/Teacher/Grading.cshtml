@@ -1,0 +1,61 @@
+@page
+@model AdministrationPlat.Pages.Teacher.Grading
+
+@{
+    Layout = "Shared/TeacherLayout";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <title></title>
+</head>
+<body>
+<div>
+    <form method="post">
+        <label for="Classes">Choose Class:</label>
+        <select id="Classes" name="SelectedClass">
+            <option value="example1">Example1</option>
+            <option value="example2">Example2</option>
+            <option value="example3">Example3</option>
+            <option value="example4">Example4</option>
+        </select>
+
+        <button id="confirmButton" asp-page-handler="ShowOverlay">Confirm</button>
+        
+        @if (Model.ShowOverlay)
+        {
+            <div id="overlay">
+                <ul>
+                    @for (int i = 0; i <= 10; i++)
+                    {
+                        <li>Student @i</li>
+                        
+                        //@for (int j = 0; j <= 10; j++)
+                        //{
+                        //    
+                        //}
+                        
+                        
+                        <button id="StudentButton" asp-page-handler="ShowOverlay2">Grade Student @i</button>
+                        
+                        if (Model.ShowOverlay2)
+                        {
+                            <div id="studentGrading">
+                                <label id="Assigngrade">Assign student @i's grade</label>
+                                <textarea id = "GradeSetBox"></textarea>
+                                <button asp-page-handler = "submitClose">submit</button>
+                            </div>
+                        }
+                    }
+                </ul>
+            </div>
+        }
+        
+        
+        
+    </form>
+</div>
+</body>
+</html>
