@@ -5,35 +5,167 @@
     Layout = "Shared/TeacherLayout";
 }
 
-<!DOCTYPE html>
+<link rel="stylesheet" href="~/css/Teacher/Classes.css" />
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    <form method="post">
-        <div id="classesMain"> 
-            <ul>
-                @for (int i = 0; i <= 10; i++)
-                {
-                    <button type="submit" asp-page-handler="ShowOverlay" name="classId" value="@i">
-                        Class @i
-                    </button>
-                }
-            </ul>
-        </div>
-        
-        @if (Model.ShowOverlay)
+<div class="classes-page">
+    <h1>Classes</h1>
+
+    @if (TempData["ClassMessage"] is string classMessage)
+    {
+        <div class="status-message">@classMessage</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        var validationMessages = ViewData.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .Where(message => !string.IsNullOrWhiteSpace(message))
+            .ToList();
+
+        if (validationMessages.Count > 0)
         {
-            <div id="overlay">
-                <h1>Currently viewing class @Model.SelectedClassId</h1>
-                <h3>Class information (Later from database) will be displayed below</h3>
-                
+            <div class="validation-summary">
+                @foreach (var errorMessage in validationMessages)
+                {
+                    <p>@errorMessage</p>
+                }
             </div>
         }
-    </form>
+    }
+
+    <section class="add-class">
+        <h2>Create a new class</h2>
+        <form method="post">
+            <div class="form-row">
+                <label asp-for="NewClassName">Class name</label>
+                <input asp-for="NewClassName" placeholder="e.g. Algebra II" />
+            </div>
+
+            <div class="form-row">
+                <label asp-for="NewClassRoom">Room</label>
+                <input asp-for="NewClassRoom" placeholder="e.g. Room 301" />
+            </div>
+
+            <div class="form-row">
+                <label asp-for="NewClassDescription">Description</label>
+                <textarea asp-for="NewClassDescription" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+
+            <button type="submit" asp-page-handler="AddClass">Add class</button>
+        </form>
+    </section>
+
+    <section class="class-list">
+        <h2>Your classes</h2>
+
+        @if (Model.TeacherClasses.Count == 0)
+        {
+            <p>You do not have any classes yet. Use the form above to create one.</p>
+        }
+        else
+        {
+            <ul>
+                @foreach (var schoolClass in Model.TeacherClasses)
+                {
+                    <li>
+                        <div class="class-card">
+                            <div>
+                                <strong>@schoolClass.Name</strong>
+                                @if (!string.IsNullOrWhiteSpace(schoolClass.Room))
+                                {
+                                    <span class="muted">Room @schoolClass.Room</span>
+                                }
+                                @if (!string.IsNullOrWhiteSpace(schoolClass.Description))
+                                {
+                                    <p class="muted">@schoolClass.Description</p>
+                                }
+                            </div>
+                            <form method="post">
+                                <input type="hidden" name="classId" value="@schoolClass.Id" />
+                                <button type="submit" asp-page-handler="ShowOverlay">Manage class</button>
+                            </form>
+                        </div>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    @if (Model.ShowOverlay && Model.ActiveClass != null)
+    {
+        <div id="overlay">
+            <div class="overlay-body">
+                <h2>@Model.ActiveClass.Name</h2>
+                @if (!string.IsNullOrWhiteSpace(Model.ActiveClass.Room))
+                {
+                    <p class="muted">Room @Model.ActiveClass.Room</p>
+                }
+                @if (!string.IsNullOrWhiteSpace(Model.ActiveClass.Description))
+                {
+                    <p>@Model.ActiveClass.Description</p>
+                }
+
+                <section class="roster">
+                    <h3>Students</h3>
+                    @if (Model.ActiveEnrollments.Count == 0)
+                    {
+                        <p>No students enrolled yet.</p>
+                    }
+                    else
+                    {
+                        <ul>
+                            @foreach (var enrollment in Model.ActiveEnrollments)
+                            {
+                                var student = enrollment.Student;
+                                if (student == null)
+                                {
+                                    continue;
+                                }
+                                <li>
+                                    <span>@student.FullName</span>
+                                    @if (!string.IsNullOrWhiteSpace(student.Email))
+                                    {
+                                        <span class="muted">@student.Email</span>
+                                    }
+                                    <form method="post" class="inline-form">
+                                        <input type="hidden" asp-for="SelectedClassId" value="@Model.ActiveClass.Id" />
+                                        <input type="hidden" name="enrollmentId" value="@enrollment.Id" />
+                                        <button type="submit" asp-page-handler="RemoveStudent" class="link-button">Remove</button>
+                                    </form>
+                                </li>
+                            }
+                        </ul>
+                    }
+                </section>
+
+                <section class="add-student">
+                    <h3>Add student</h3>
+                    <form method="post">
+                        <input type="hidden" asp-for="SelectedClassId" value="@Model.ActiveClass.Id" />
+                        <div class="form-grid">
+                            <div>
+                                <label asp-for="NewStudentFirstName">First name</label>
+                                <input asp-for="NewStudentFirstName" />
+                            </div>
+                            <div>
+                                <label asp-for="NewStudentLastName">Last name</label>
+                                <input asp-for="NewStudentLastName" />
+                            </div>
+                            <div class="wide">
+                                <label asp-for="NewStudentEmail">Email</label>
+                                <input asp-for="NewStudentEmail" type="email" />
+                            </div>
+                        </div>
+                        <button type="submit" asp-page-handler="AddStudent">Add student</button>
+                    </form>
+                </section>
+
+                <form method="post">
+                    <input type="hidden" asp-for="SelectedClassId" value="@Model.ActiveClass.Id" />
+                    <button type="submit" asp-page-handler="HideOverlay" class="close-btn">Close</button>
+                </form>
+            </div>
+        </div>
+    }
 </div>
-</body>
-</html>

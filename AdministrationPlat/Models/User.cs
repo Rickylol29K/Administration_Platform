@@ -1,9 +1,16 @@
-namespace AdministrationPlat.Models
+using System.ComponentModel.DataAnnotations;
+
+namespace AdministrationPlat.Models;
+
+public class User
 {
-    public class User
-    {
-        public int Id { get; set; }
-        public string Username { get; set; }
-        public string Password { get; set; }
-    }
+    public int Id { get; set; }
+
+    [Required]
+    [MaxLength(50)]
+    public string Username { get; set; } = string.Empty;
+
+    [Required]
+    [MaxLength(100)]
+    public string Password { get; set; } = string.Empty;
 }

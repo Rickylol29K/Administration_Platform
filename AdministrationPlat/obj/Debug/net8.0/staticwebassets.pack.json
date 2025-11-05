@@ -17,6 +17,14 @@
       "PackagePath": "staticwebassets/css/Teacher/CalendarStyle.css"
     },
     {
+      "Id": "/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/wwwroot/css/Teacher/Classes.css",
+      "PackagePath": "staticwebassets/css/Teacher/Classes.css"
+    },
+    {
+      "Id": "/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/wwwroot/css/Teacher/Grading.css",
+      "PackagePath": "staticwebassets/css/Teacher/Grading.css"
+    },
+    {
       "Id": "/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/wwwroot/css/Teacher/stylesTeacherIndex.css",
       "PackagePath": "staticwebassets/css/Teacher/stylesTeacherIndex.css"
     },

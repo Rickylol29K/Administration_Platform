@@ -5,17 +5,88 @@
     Layout = "Shared/TeacherLayout";
 }
 
-<!DOCTYPE html>
+<link rel="stylesheet" href="~/css/Teacher/stylesTeacherIndex.css" />
 
-<html>
-<head>
-    <title>Index</title>
+<div class="teacher-dashboard">
+    <h1>Teacher Dashboard</h1>
 
-    <link rel="stylesheet" href="~/css/Teacher/stylesTeacherIndex.css">
-</head>
-<body>
-<div>
-    <h1 id="text">Dashboard</h1>
+    <section class="stats">
+        <div class="stat-card">
+            <span class="stat-label">Classes</span>
+            <span class="stat-value">@Model.ClassCount</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Students</span>
+            <span class="stat-value">@Model.StudentCount</span>
+        </div>
+        <div class="stat-card">
+            <span class="stat-label">Upcoming Events</span>
+            <span class="stat-value">@Model.UpcomingEvents.Count</span>
+        </div>
+    </section>
+
+    <section class="dashboard-section">
+        <h2>Upcoming events</h2>
+        @if (Model.UpcomingEvents.Count == 0)
+        {
+            <p>No events scheduled yet.</p>
+        }
+        else
+        {
+            <ul class="event-list">
+                @foreach (var item in Model.UpcomingEvents)
+                {
+                    var eventDate = new DateTime(item.Year, item.Month, item.Day);
+                    <li>
+                        <div>
+                            <strong>@item.Title</strong>
+                            <span class="muted">@eventDate.ToString("MMM dd") @item.Time</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(item.Location))
+                        {
+                            <span class="muted">@item.Location</span>
+                        }
+                        @if (!string.IsNullOrWhiteSpace(item.Description))
+                        {
+                            <p>@item.Description</p>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="dashboard-section">
+        <h2>Recent grades</h2>
+        @if (Model.RecentGrades.Count == 0)
+        {
+            <p>No grades recorded yet.</p>
+        }
+        else
+        {
+            <ul class="grades-list">
+                @foreach (var grade in Model.RecentGrades)
+                {
+                    <li>
+                        <div class="grade-header">
+                            <strong>@grade.Student?.FullName</strong>
+                            <span class="muted">@grade.SchoolClass?.Name</span>
+                        </div>
+                        <div class="grade-detail">
+                            <span>@grade.Assessment</span>
+                            <span class="muted">@grade.DateRecorded.ToString("MMM dd")</span>
+                            @if (grade.Score != null)
+                            {
+                                <span class="score">@grade.Score@{ if (grade.MaxScore != null) { <text>/@grade.MaxScore</text>; } }</span>
+                            }
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(grade.Comments))
+                        {
+                            <p>@grade.Comments</p>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
 </div>
-</body>
-</html>

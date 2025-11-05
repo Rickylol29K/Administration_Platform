@@ -5,57 +5,104 @@
     Layout = "Shared/TeacherLayout";
 }
 
-<!DOCTYPE html>
+<link rel="stylesheet" href="~/css/Teacher/Grading.css" />
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    <form method="post">
-        <label for="Classes">Choose Class:</label>
-        <select id="Classes" name="SelectedClass">
-            <option value="example1">Example1</option>
-            <option value="example2">Example2</option>
-            <option value="example3">Example3</option>
-            <option value="example4">Example4</option>
-        </select>
+<div class="grading-page">
+    <h1>Grading</h1>
 
-        <button id="confirmButton" asp-page-handler="ShowOverlay">Confirm</button>
-        
-        @if (Model.ShowOverlay)
-        {
-            <div id="overlay">
-                <ul>
-                    @for (int i = 0; i <= 10; i++)
+    @if (TempData["GradingMessage"] is string message)
+    {
+        <div class="status-message">@message</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary">
+            @foreach (var entry in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@entry.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <form method="post" asp-page-handler="Load" class="setup-form">
+        <div class="form-grid">
+            <div>
+                <label asp-for="SelectedClassId">Class</label>
+                <select asp-for="SelectedClassId">
+                    <option value="0">-- pick a class --</option>
+                    @foreach (var schoolClass in Model.AvailableClasses)
                     {
-                        <li>Student @i</li>
-                        
-                        //@for (int j = 0; j <= 10; j++)
-                        //{
-                        //    
-                        //}
-                        
-                        
-                        <button id="StudentButton" asp-page-handler="ShowOverlay2">Grade Student @i</button>
-                        
-                        if (Model.ShowOverlay2)
-                        {
-                            <div id="studentGrading">
-                                <label id="Assigngrade">Assign student @i's grade</label>
-                                <textarea id = "GradeSetBox"></textarea>
-                                <button asp-page-handler = "submitClose">submit</button>
-                            </div>
-                        }
+                        <option value="@schoolClass.Id">@schoolClass.Name</option>
                     }
-                </ul>
+                </select>
             </div>
-        }
-        
-        
-        
+            <div>
+                <label asp-for="AssessmentName">Assessment name</label>
+                <input asp-for="AssessmentName" />
+            </div>
+            <div>
+                <label asp-for="AssessmentDate">Assessment date</label>
+                <input asp-for="AssessmentDate" type="date" />
+            </div>
+            <div>
+                <label asp-for="MaxScore">Max score (optional)</label>
+                <input asp-for="MaxScore" type="number" step="0.01" min="0" />
+            </div>
+        </div>
+
+        <button type="submit">Show students</button>
     </form>
+
+    @if (Model.SheetLoaded)
+    {
+        <h2>@Model.ActiveClassName — @Model.AssessmentName (@Model.AssessmentDate.ToString("yyyy-MM-dd"))</h2>
+
+        @if (Model.StudentGrades.Count == 0)
+        {
+            <p>No students found for this class.</p>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" asp-for="SelectedClassId" />
+                <input type="hidden" asp-for="AssessmentName" />
+                <input type="hidden" asp-for="AssessmentDate" />
+                <input type="hidden" asp-for="MaxScore" />
+
+                <div class="grades-table">
+                    <table>
+                        <thead>
+                            <tr>
+                                <th>Student</th>
+                                <th>Score</th>
+                                <th>Comment</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @for (var i = 0; i < Model.StudentGrades.Count; i++)
+                            {
+                                <tr>
+                                    <td>
+                                        <input type="hidden" asp-for="StudentGrades[i].StudentId" />
+                                        @Model.StudentGrades[i].StudentName
+                                    </td>
+                                    <td>
+                                        <input asp-for="StudentGrades[i].Score" type="number" step="0.01" min="0" />
+                                    </td>
+                                    <td>
+                                        <input asp-for="StudentGrades[i].Comment" />
+                                    </td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="overlayButtons">
+                    <button type="submit">Save grades</button>
+                </div>
+            </form>
+        }
+    }
 </div>
-</body>
-</html>

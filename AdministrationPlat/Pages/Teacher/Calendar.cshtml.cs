@@ -1,184 +1,260 @@
+using AdministrationPlat.Data;
+using AdministrationPlat.Models;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using AdministrationPlat.Models;
-using AdministrationPlat.Data;
 
-namespace AdministrationPlat.Pages.Teacher
+namespace AdministrationPlat.Pages.Teacher;
+
+public class CalendarModel : PageModel
 {
-    public class CalendarModel : PageModel
+    private readonly ApplicationDbContext _context;
+
+    public CalendarModel(ApplicationDbContext context)
     {
-        private readonly ApplicationDbContext _context;
+        _context = context;
+    }
 
-        public CalendarModel(ApplicationDbContext context)
+    public List<int> Days { get; private set; } = new();
+    public int Year { get; private set; }
+    public string MonthName { get; private set; } = string.Empty;
+    public int Month { get; private set; }
+
+    [BindProperty] public bool ShowOverlay { get; set; }
+    [BindProperty] public int SelectedDay { get; set; }
+    [BindProperty] public EventItem NewEvent { get; set; } = new();
+    [BindProperty] public Guid EditingId { get; set; }
+
+    public List<EventItem> MonthEvents { get; private set; } = new();
+    public List<EventItem> SelectedDayEvents { get; private set; } = new();
+
+    public IActionResult OnGet()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
         {
-            _context = context;
+            return RedirectToPage("/Index");
         }
 
-        public List<int> Days { get; set; } = new();
-        public int Year { get; set; }
-        public string MonthName { get; set; } = "";
-        public int Month { get; set; }
+        SelectedDay = DateTime.Today.Day;
+        BuildCalendar();
+        LoadEvents(userId.Value);
+        return Page();
+    }
 
-        [BindProperty] public bool ShowOverlay { get; set; }
-        [BindProperty] public int SelectedDay { get; set; }
-        [BindProperty] public EventItem NewEvent { get; set; } = new();
-        [BindProperty] public Guid EditingId { get; set; }
-
-        public List<EventItem> DayEvents { get; set; } = new();
-
-        public IActionResult OnGet()
+    public IActionResult OnPostShowOverlay(int selectedDay)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
-
-            GenerateCalendar();
-            LoadEvents();
-            return Page();
+            return RedirectToPage("/Index");
         }
 
-        private void GenerateCalendar()
-        {
-            var today = DateTime.Now;
-            Year = today.Year;
-            Month = today.Month;
-            MonthName = today.ToString("MMMM");
+        SelectedDay = selectedDay;
+        ShowOverlay = true;
+        BuildCalendar();
+        LoadEvents(userId.Value);
+        return Page();
+    }
 
-            int daysInMonth = DateTime.DaysInMonth(Year, Month);
-            Days = Enumerable.Range(1, daysInMonth).ToList();
+    public IActionResult OnPostHideOverlay()
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToPage("/Index");
         }
 
-        public IActionResult OnPostShowOverlay(int selectedDay)
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
+        ShowOverlay = false;
+        BuildCalendar();
+        LoadEvents(userId.Value);
+        return Page();
+    }
 
-            SelectedDay = selectedDay;
+    public IActionResult OnPostAddEvent(int selectedDay)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToPage("/Index");
+        }
+
+        SelectedDay = selectedDay;
+        BuildCalendar();
+        if (!ModelState.IsValid)
+        {
             ShowOverlay = true;
-            GenerateCalendar();
-            LoadEvents();
+            LoadEvents(userId.Value);
             return Page();
         }
 
-        public IActionResult OnPostHideOverlay()
+        NewEvent.Id = Guid.NewGuid();
+        NewEvent.Day = selectedDay;
+        NewEvent.Month = Month;
+        NewEvent.Year = Year;
+        NewEvent.UserId = userId.Value;
+        NewEvent.Title = NewEvent.Title.Trim();
+        if (string.IsNullOrWhiteSpace(NewEvent.Title))
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
-
-            ShowOverlay = false;
-            GenerateCalendar();
-            LoadEvents();
+            ModelState.AddModelError("NewEvent.Title", "Event title is required.");
+            ShowOverlay = true;
+            LoadEvents(userId.Value);
             return Page();
         }
+        NewEvent.Description = string.IsNullOrWhiteSpace(NewEvent.Description)
+            ? null
+            : NewEvent.Description.Trim();
+        NewEvent.Location = string.IsNullOrWhiteSpace(NewEvent.Location)
+            ? null
+            : NewEvent.Location.Trim();
+        NewEvent.Time = string.IsNullOrWhiteSpace(NewEvent.Time)
+            ? null
+            : NewEvent.Time.Trim();
 
-        public IActionResult OnPostAddEvent(int selectedDay)
+        _context.TeacherEvents.Add(NewEvent);
+        _context.SaveChanges();
+
+        ResetFormState();
+        ShowOverlay = true;
+        LoadEvents(userId.Value);
+        return Page();
+    }
+
+    public IActionResult OnPostDeleteEvent(Guid id, int selectedDay)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
+            return RedirectToPage("/Index");
+        }
 
-            NewEvent.Day = selectedDay;
-            NewEvent.Month = DateTime.Now.Month;
-            NewEvent.Year = DateTime.Now.Year;
-            NewEvent.UserId = userId.Value;
+        SelectedDay = selectedDay;
+        BuildCalendar();
 
-            _context.TeacherEvents.Add(NewEvent);
+        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
+        if (ev != null)
+        {
+            _context.TeacherEvents.Remove(ev);
             _context.SaveChanges();
+        }
 
-            NewEvent = new EventItem();
-            SelectedDay = selectedDay;
+        ShowOverlay = true;
+        LoadEvents(userId.Value);
+        return Page();
+    }
+
+    public IActionResult OnPostEditEvent(Guid id, int selectedDay)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToPage("/Index");
+        }
+
+        SelectedDay = selectedDay;
+        BuildCalendar();
+
+        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
+        if (ev != null)
+        {
+            EditingId = id;
+            NewEvent = new EventItem
+            {
+                Id = ev.Id,
+                Title = ev.Title,
+                Description = ev.Description,
+                Location = ev.Location,
+                Time = ev.Time,
+                Day = ev.Day,
+                Month = ev.Month,
+                Year = ev.Year
+            };
+            ModelState.Clear();
+        }
+
+        ShowOverlay = true;
+        LoadEvents(userId.Value);
+        return Page();
+    }
+
+    public IActionResult OnPostUpdateEvent(int selectedDay)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        if (userId == null)
+        {
+            return RedirectToPage("/Index");
+        }
+
+        SelectedDay = selectedDay;
+        BuildCalendar();
+        if (!ModelState.IsValid)
+        {
             ShowOverlay = true;
-            GenerateCalendar();
-            LoadEvents();
+            LoadEvents(userId.Value);
             return Page();
         }
 
-        public IActionResult OnPostDeleteEvent(Guid id, int selectedDay)
+        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == NewEvent.Id && e.UserId == userId.Value);
+        if (ev != null)
         {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
-
-            var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
-            if (ev != null)
+            var title = NewEvent.Title?.Trim() ?? string.Empty;
+            if (string.IsNullOrWhiteSpace(title))
             {
-                _context.TeacherEvents.Remove(ev);
-                _context.SaveChanges();
+                ModelState.AddModelError("NewEvent.Title", "Event title is required.");
+                ShowOverlay = true;
+                LoadEvents(userId.Value);
+                return Page();
             }
 
-            SelectedDay = selectedDay;
-            ShowOverlay = true;
-            GenerateCalendar();
-            LoadEvents();
-            return Page();
+            ev.Title = title;
+            ev.Description = string.IsNullOrWhiteSpace(NewEvent.Description)
+                ? null
+                : NewEvent.Description.Trim();
+            ev.Location = string.IsNullOrWhiteSpace(NewEvent.Location)
+                ? null
+                : NewEvent.Location.Trim();
+            ev.Time = string.IsNullOrWhiteSpace(NewEvent.Time)
+                ? null
+                : NewEvent.Time.Trim();
+            _context.SaveChanges();
         }
 
-        public IActionResult OnPostEditEvent(Guid id, int selectedDay)
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
+        EditingId = Guid.Empty;
+        ResetFormState();
+        ShowOverlay = true;
+        LoadEvents(userId.Value);
+        return Page();
+    }
 
-            var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
-            if (ev != null)
-            {
-                EditingId = id;
-                NewEvent = new EventItem
-                {
-                    Id = ev.Id,
-                    Day = ev.Day,
-                    Title = ev.Title,
-                    Description = ev.Description,
-                    Location = ev.Location,
-                    Time = ev.Time
-                };
-            }
+    private void BuildCalendar()
+    {
+        var today = DateTime.Today;
+        Year = today.Year;
+        Month = today.Month;
+        MonthName = today.ToString("MMMM");
 
-            SelectedDay = selectedDay;
-            ShowOverlay = true;
-            GenerateCalendar();
-            LoadEvents();
-            return Page();
-        }
+        var daysInMonth = DateTime.DaysInMonth(Year, Month);
+        Days = Enumerable.Range(1, daysInMonth).ToList();
+    }
 
-        public IActionResult OnPostUpdateEvent(int selectedDay)
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return RedirectToPage("/Index");
+    private void LoadEvents(int userId)
+    {
+        MonthEvents = _context.TeacherEvents
+            .Where(e => e.Month == Month && e.Year == Year && e.UserId == userId)
+            .OrderBy(e => e.Day)
+            .ThenBy(e => e.Time)
+            .ToList();
 
-            var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == NewEvent.Id && e.UserId == userId.Value);
-            if (ev != null)
-            {
-                ev.Title = NewEvent.Title;
-                ev.Description = NewEvent.Description;
-                ev.Location = NewEvent.Location;
-                ev.Time = NewEvent.Time;
-                _context.SaveChanges();
-            }
+        SelectedDayEvents = MonthEvents
+            .Where(e => e.Day == SelectedDay)
+            .OrderBy(e => e.Time)
+            .ToList();
+    }
 
-            EditingId = Guid.Empty;
-            SelectedDay = selectedDay;
-            ShowOverlay = true;
-            GenerateCalendar();
-            LoadEvents();
-            return Page();
-        }
-
-        private void LoadEvents()
-        {
-            var userId = HttpContext.Session.GetInt32("UserId");
-            if (userId == null)
-                return;
-
-            DayEvents = _context.TeacherEvents
-                .Where(e => e.Day == SelectedDay && e.Month == Month && e.Year == Year && e.UserId == userId.Value)
-                .ToList();
-        }
+    private void ResetFormState()
+    {
+        NewEvent = new EventItem();
+        EditingId = Guid.Empty;
+        ModelState.Clear();
     }
 }

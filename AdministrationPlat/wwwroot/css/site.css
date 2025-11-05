@@ -1,22 +1,119 @@
-html {
-  font-size: 14px;
-}
-
-@media (min-width: 768px) {
-  html {
-    font-size: 16px;
-  }
-}
-
-.btn:focus, .btn:active:focus, .btn-link.nav-link:focus, .form-control:focus, .form-check-input:focus {
-  box-shadow: 0 0 0 0.1rem white, 0 0 0 0.25rem #258cfb;
-}
-
-html {
-  position: relative;
-  min-height: 100%;
-}
-
 body {
-  margin-bottom: 60px;
+  margin: 0;
+  font-family: Arial, sans-serif;
+  background-color: #e5e5e5;
+  color: #222;
+}
+
+a {
+  color: #0057a8;
+  text-decoration: none;
+}
+
+a:hover {
+  text-decoration: underline;
+}
+
+input,
+select,
+textarea,
+button {
+  font-family: inherit;
+  font-size: 14px;
+  padding: 6px;
+  border: 1px solid #b5b5b5;
+  border-radius: 3px;
+  box-sizing: border-box;
+}
+
+button {
+  background-color: #0057a8;
+  color: #fff;
+  cursor: pointer;
+}
+
+button:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.auth-page {
+  padding: 30px 15px;
+  display: flex;
+  justify-content: center;
+}
+
+.auth-card {
+  background-color: #fff;
+  border: 1px solid #cfcfcf;
+  width: 100%;
+  max-width: 420px;
+  padding: 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.auth-card h1 {
+  text-align: center;
+  margin: 0;
+  font-size: 22px;
+}
+
+.auth-forms {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  border: 1px solid #ddd;
+  padding: 12px;
+  background-color: #fafafa;
+}
+
+.auth-form h2 {
+  margin: 0;
+  font-size: 18px;
+}
+
+.form-field {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-actions {
+  display: flex;
+  justify-content: flex-start;
+  gap: 10px;
+}
+
+.button-primary {
+  background-color: #0057a8;
+  border-color: #004a91;
+}
+
+.button-secondary {
+  background-color: #777;
+  border-color: #666;
+}
+
+.auth-message {
+  padding: 10px;
+  border: 1px solid #ccc;
+  background-color: #f7f7f7;
+}
+
+.status-message {
+  background-color: #e1f5e1;
+  border-color: #9ec99e;
+}
+
+.validation-summary {
+  background-color: #ffe0e0;
+  border-color: #dd8080;
 }

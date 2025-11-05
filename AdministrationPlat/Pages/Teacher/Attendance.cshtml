@@ -5,58 +5,77 @@
     Layout = "Shared/TeacherLayout";
 }
 
-<!DOCTYPE html>
-
 <link rel="stylesheet" href="~/css/Teacher/AttendanceTeacher.css" />
 
-<html>
-<head>
-    <title></title>
-</head>
-<body>
-<div>
-    <form method="post">
-        <label for="Classes">Choose Class:</label>
-        <select id="Classes" name="SelectedClass">
-            <option value="example1">Example1</option>
-            <option value="example2">Example2</option>
-            <option value="example3">Example3</option>
-            <option value="example4">Example4</option>
-        </select>
+<div class="attendance-page">
+    <h1>Take Attendance</h1>
 
-        <button id="confirmButton" asp-page-handler="ShowOverlay">Confirm</button>
+    @if (TempData["AttendanceSaved"] is string savedMessage)
+    {
+        <div class="status-message">@savedMessage</div>
+    }
 
-        @if (Model.ShowOverlay)
+    @if (!ViewData.ModelState.IsValid)
+    {
+        <div class="validation-summary">
+            @foreach (var entry in ViewData.ModelState.Values.SelectMany(v => v.Errors))
+            {
+                <p>@entry.ErrorMessage</p>
+            }
+        </div>
+    }
+
+    <form method="post" asp-page-handler="Load" class="attendance-form">
+        <div class="form-row">
+            <label asp-for="SelectedClassId">Class</label>
+            <select asp-for="SelectedClassId">
+                <option value="0">-- pick a class --</option>
+                @foreach (var schoolClass in Model.AvailableClasses)
+                {
+                    <option value="@schoolClass.Id">@schoolClass.Name</option>
+                }
+            </select>
+        </div>
+
+        <div class="form-row">
+            <label asp-for="SelectedDate">Date</label>
+            <input asp-for="SelectedDate" type="date" />
+        </div>
+
+        <button type="submit">Show students</button>
+    </form>
+
+    @if (Model.RosterLoaded)
+    {
+        <h2>@Model.ActiveClassName on @Model.SelectedDate.ToString("yyyy-MM-dd")</h2>
+
+        @if (Model.StudentAttendances.Count == 0)
         {
-        <div id="overlayBackground">
-            <div id="overlayContent">
-                <h2>Take Attendance</h2>
-                <p>Class: Example1</p>
-                <p>Date: @DateTime.Now.ToShortDateString()</p>
+            <p>No students found for this class.</p>
+        }
+        else
+        {
+            <form method="post" asp-page-handler="Save">
+                <input type="hidden" asp-for="SelectedClassId" />
+                <input type="hidden" asp-for="SelectedDate" />
 
                 <div class="studentList">
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
-                    <label><input type="checkbox" />Example Student</label>
+                    @for (var i = 0; i < Model.StudentAttendances.Count; i++)
+                    {
+                        <div class="studentAttendance">
+                            <input type="hidden" asp-for="StudentAttendances[i].StudentId" />
+                            <label>
+                                <input type="checkbox" asp-for="StudentAttendances[i].IsPresent" />
+                                @Model.StudentAttendances[i].StudentName
+                            </label>
+                        </div>
+                    }
                 </div>
 
                 <div class="overlayButtons">
-                    <button type="submit" asp-page-handler="SaveAttendance" class="saveButton">Save Attendance</button>
-                    <button type="submit" asp-page-handler="HideOverlay" class="cancelButton">Cancel</button>
+                    <button type="submit">Save attendance</button>
                 </div>
-            </div>
-        </div>
+            </form>
         }
-    </form>
+    }
 </div>
-</body>
-</html>

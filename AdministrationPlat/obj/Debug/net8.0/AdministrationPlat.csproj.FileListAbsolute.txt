@@ -166,3 +166,4 @@
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/runtimes/browser/lib/net8.0/System.Text.Encodings.Web.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/runtimes/win/lib/net6.0/System.Windows.Extensions.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/obj/Debug/net8.0/Administ.43C9FC7B.Up2Date
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/obj/Debug/net8.0/AdministrationPlat.sourcelink.json

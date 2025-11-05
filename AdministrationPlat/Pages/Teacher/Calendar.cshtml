@@ -25,7 +25,7 @@
         <div class="calendar-days">
             @foreach (var day in Model.Days)
             {
-                var hasEvent = Model.DayEvents.Any(e => e.Day == day);
+                var hasEvent = Model.MonthEvents.Any(e => e.Day == day);
 
                 <button type="submit"
                         asp-page-handler="ShowOverlay"
@@ -49,9 +49,9 @@
                 <h3>Events for @Model.SelectedDay @Model.MonthName</h3>
 
                 <div class="event-list">
-                    @if (Model.DayEvents.Any())
+                    @if (Model.SelectedDayEvents.Any())
                     {
-                        foreach (var ev in Model.DayEvents)
+                        foreach (var ev in Model.SelectedDayEvents)
                         {
                             <div class="event-item">
                                 <strong>@ev.Title</strong><br />
