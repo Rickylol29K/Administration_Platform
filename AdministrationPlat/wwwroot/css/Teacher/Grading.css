@@ -1,0 +1,92 @@
+.grading-page {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.grading-page h1 {
+    margin: 0;
+}
+
+.setup-form {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    max-width: 640px;
+}
+
+.setup-form label {
+    font-weight: bold;
+}
+
+.setup-form .form-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.setup-form .form-grid > div {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.status-message,
+.validation-summary {
+    padding: 8px;
+    border: 1px solid #cccccc;
+    background-color: #f9f9f9;
+}
+
+#overlayBackground {
+    position: fixed;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#overlayContent {
+    width: 100%;
+    max-width: 860px;
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    padding: 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.assessment-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.assessment-meta > div {
+    flex: 1 1 200px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.grades-table table {
+    width: 100%;
+    border-collapse: collapse;
+}
+
+.grades-table th,
+.grades-table td {
+    border: 1px solid #cccccc;
+    padding: 6px;
+    text-align: left;
+}
+
+.overlayButtons {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+}

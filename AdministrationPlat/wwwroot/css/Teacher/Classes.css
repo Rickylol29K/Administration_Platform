@@ -1,0 +1,97 @@
+.classes-page {
+    padding: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 20px;
+}
+
+.classes-page h1 {
+    margin: 0;
+}
+
+.add-class form,
+.class-list ul {
+    margin-top: 12px;
+}
+
+.form-row {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+    max-width: 320px;
+}
+
+.form-row textarea {
+    min-height: 60px;
+}
+
+.class-list ul {
+    list-style: none;
+    padding-left: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.class-card {
+    border: 1px solid #cccccc;
+    background-color: #ffffff;
+    padding: 10px;
+    display: flex;
+    justify-content: space-between;
+    gap: 10px;
+    align-items: center;
+}
+
+.status-message,
+.validation-summary {
+    padding: 8px;
+    border: 1px solid #cccccc;
+    background-color: #f9f9f9;
+}
+
+.muted {
+    display: block;
+    color: #666666;
+    font-size: 13px;
+}
+
+button {
+    margin-top: 6px;
+}
+
+#overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+#overlay .overlay-body {
+    width: 100%;
+    max-width: 600px;
+    background-color: #ffffff;
+    border: 1px solid #dddddd;
+    padding: 16px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.form-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+}
+
+.form-grid > div {
+    flex: 1 1 150px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
