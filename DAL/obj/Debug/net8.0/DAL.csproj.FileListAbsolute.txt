@@ -1,0 +1,13 @@
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/bin/Debug/net8.0/DAL.deps.json
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/bin/Debug/net8.0/DAL.dll
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/bin/Debug/net8.0/DAL.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.GeneratedMSBuildEditorConfig.editorconfig
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.AssemblyInfoInputs.cache
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.AssemblyInfo.cs
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.csproj.CoreCompileInputs.cache
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.sourcelink.json
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.dll
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/refint/DAL.dll
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/ref/DAL.dll
+/Users/rickpeters/Desktop/AdministrationPlat/DAL/obj/Debug/net8.0/DAL.csproj.AssemblyReference.cache
