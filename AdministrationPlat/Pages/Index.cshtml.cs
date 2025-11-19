@@ -1,18 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
-using System.Linq;
+using DAL;
 
 namespace AdministrationPlat.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly ApplicationDbContext _context;
+        private readonly IDataRepository _repository;
 
-        public IndexModel(ApplicationDbContext context)
+        public IndexModel(IDataRepository repository)
         {
-            _context = context;
+            _repository = repository;
         }
 
         [BindProperty] public string LoginUsername { get; set; } = string.Empty;
@@ -39,8 +38,7 @@ namespace AdministrationPlat.Pages
                 return Page();
             }
 
-            var user = _context.Users.FirstOrDefault(u =>
-                u.Username == username && u.Password == password);
+            var user = _repository.GetUser(username, password);
 
             if (user != null)
             {
@@ -67,7 +65,7 @@ namespace AdministrationPlat.Pages
                 return Page();
             }
 
-            var exists = _context.Users.Any(u => u.Username == username);
+            var exists = _repository.UsernameExists(username);
             if (exists)
             {
                 Message = "Username already exists.";
@@ -75,14 +73,7 @@ namespace AdministrationPlat.Pages
                 return Page();
             }
 
-            var user = new User
-            {
-                Username = username,
-                Password = password
-            };
-
-            _context.Users.Add(user);
-            _context.SaveChanges();
+            var user = _repository.CreateUser(username, password);
 
             Message = "Registration successful! You can now log in.";
             MessageCssClass = "status-message";

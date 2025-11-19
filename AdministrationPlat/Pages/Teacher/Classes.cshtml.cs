@@ -1,19 +1,18 @@
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
+using DAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace AdministrationPlat.Pages.Teacher;
 
 public class Classes : PageModel
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDataRepository _repository;
 
-    public Classes(ApplicationDbContext context)
+    public Classes(IDataRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public List<SchoolClass> TeacherClasses { get; private set; } = new();
@@ -80,8 +79,7 @@ public class Classes : PageModel
             TeacherId = userId.Value
         };
 
-        _context.Classes.Add(schoolClass);
-        _context.SaveChanges();
+        _repository.AddClass(schoolClass);
 
         TempData["ClassMessage"] = $"Class \"{schoolClass.Name}\" created.";
 
@@ -145,7 +143,7 @@ public class Classes : PageModel
         Student? student = null;
         if (!string.IsNullOrWhiteSpace(NewStudentEmail))
         {
-            student = _context.Students.FirstOrDefault(s => s.Email == NewStudentEmail);
+            student = _repository.GetStudentByEmail(NewStudentEmail.Trim());
         }
 
         if (student == null)
@@ -156,21 +154,14 @@ public class Classes : PageModel
                 LastName = NewStudentLastName.Trim(),
                 Email = string.IsNullOrWhiteSpace(NewStudentEmail) ? null : NewStudentEmail.Trim()
             };
-            _context.Students.Add(student);
-            _context.SaveChanges();
+            _repository.AddStudent(student);
         }
 
-        var alreadyEnrolled = _context.Enrollments.Any(e =>
-            e.StudentId == student.Id && e.SchoolClassId == SelectedClassId);
+        var alreadyEnrolled = _repository.EnrollmentExists(student.Id, SelectedClassId);
 
         if (!alreadyEnrolled)
         {
-            _context.Enrollments.Add(new ClassEnrollment
-            {
-                StudentId = student.Id,
-                SchoolClassId = SelectedClassId
-            });
-            _context.SaveChanges();
+            _repository.AddEnrollment(student.Id, SelectedClassId);
             TempData["ClassMessage"] = $"{student.FullName} added to {ActiveClass.Name}.";
         }
         else
@@ -197,16 +188,12 @@ public class Classes : PageModel
 
         LoadTeacherClasses(userId.Value);
 
-        var enrollment = _context.Enrollments
-            .Include(e => e.SchoolClass)
-            .Include(e => e.Student)
-            .FirstOrDefault(e => e.Id == enrollmentId && e.SchoolClass!.TeacherId == userId.Value);
+        var enrollment = _repository.GetEnrollmentWithDetails(enrollmentId, userId.Value);
 
         if (enrollment != null)
         {
             SelectedClassId = enrollment.SchoolClassId;
-            _context.Enrollments.Remove(enrollment);
-            _context.SaveChanges();
+            _repository.RemoveEnrollment(enrollmentId);
             TempData["ClassMessage"] = $"{enrollment.Student?.FullName ?? "Student"} removed from {enrollment.SchoolClass?.Name}.";
         }
 
@@ -230,18 +217,12 @@ public class Classes : PageModel
 
     private void LoadTeacherClasses(int userId)
     {
-        TeacherClasses = _context.Classes
-            .Where(c => c.TeacherId == userId)
-            .OrderBy(c => c.Name)
-            .ToList();
+        TeacherClasses = _repository.GetClassesForTeacher(userId);
     }
 
     private void LoadActiveClass(int userId)
     {
-        ActiveClass = _context.Classes
-            .Include(c => c.Enrollments)
-            .ThenInclude(e => e.Student)
-            .FirstOrDefault(c => c.Id == SelectedClassId && c.TeacherId == userId);
+        ActiveClass = _repository.GetClassWithEnrollments(SelectedClassId, userId);
 
         ActiveEnrollments = ActiveClass?.Enrollments
             .Where(e => e.Student != null)

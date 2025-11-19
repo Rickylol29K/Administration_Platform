@@ -1,5 +1,5 @@
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
+using DAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,11 +8,11 @@ namespace AdministrationPlat.Pages.Teacher;
 
 public class CalendarModel : PageModel
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDataRepository _repository;
 
-    public CalendarModel(ApplicationDbContext context)
+    public CalendarModel(IDataRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public List<int> Days { get; private set; } = new();
@@ -111,8 +111,7 @@ public class CalendarModel : PageModel
             ? null
             : NewEvent.Time.Trim();
 
-        _context.TeacherEvents.Add(NewEvent);
-        _context.SaveChanges();
+        _repository.AddEvent(NewEvent);
 
         ResetFormState();
         ShowOverlay = true;
@@ -131,11 +130,10 @@ public class CalendarModel : PageModel
         SelectedDay = selectedDay;
         BuildCalendar();
 
-        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
+        var ev = _repository.GetEvent(id, userId.Value);
         if (ev != null)
         {
-            _context.TeacherEvents.Remove(ev);
-            _context.SaveChanges();
+            _repository.DeleteEvent(id, userId.Value);
         }
 
         ShowOverlay = true;
@@ -154,7 +152,7 @@ public class CalendarModel : PageModel
         SelectedDay = selectedDay;
         BuildCalendar();
 
-        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == id && e.UserId == userId.Value);
+        var ev = _repository.GetEvent(id, userId.Value);
         if (ev != null)
         {
             EditingId = id;
@@ -194,7 +192,7 @@ public class CalendarModel : PageModel
             return Page();
         }
 
-        var ev = _context.TeacherEvents.FirstOrDefault(e => e.Id == NewEvent.Id && e.UserId == userId.Value);
+        var ev = _repository.GetEvent(NewEvent.Id, userId.Value);
         if (ev != null)
         {
             var title = NewEvent.Title?.Trim() ?? string.Empty;
@@ -216,7 +214,7 @@ public class CalendarModel : PageModel
             ev.Time = string.IsNullOrWhiteSpace(NewEvent.Time)
                 ? null
                 : NewEvent.Time.Trim();
-            _context.SaveChanges();
+            _repository.UpdateEvent(ev);
         }
 
         EditingId = Guid.Empty;
@@ -239,11 +237,7 @@ public class CalendarModel : PageModel
 
     private void LoadEvents(int userId)
     {
-        MonthEvents = _context.TeacherEvents
-            .Where(e => e.Month == Month && e.Year == Year && e.UserId == userId)
-            .OrderBy(e => e.Day)
-            .ThenBy(e => e.Time)
-            .ToList();
+        MonthEvents = _repository.GetEventsForMonth(userId, Year, Month);
 
         SelectedDayEvents = MonthEvents
             .Where(e => e.Day == SelectedDay)

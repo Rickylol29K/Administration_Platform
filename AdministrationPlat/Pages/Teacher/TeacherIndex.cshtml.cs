@@ -1,19 +1,18 @@
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
+using DAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace AdministrationPlat.Pages.Shared.Teacher;
 
 public class TeacherIndex : PageModel
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDataRepository _repository;
 
-    public TeacherIndex(ApplicationDbContext context)
+    public TeacherIndex(IDataRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public int ClassCount { get; private set; }
@@ -29,44 +28,10 @@ public class TeacherIndex : PageModel
             return RedirectToPage("/Index");
         }
 
-        ClassCount = _context.Classes.Count(c => c.TeacherId == userId);
-
-        StudentCount = _context.Enrollments
-            .Where(e => e.SchoolClass != null && e.SchoolClass.TeacherId == userId)
-            .Select(e => e.StudentId)
-            .Distinct()
-            .Count();
-
-        UpcomingEvents = _context.TeacherEvents
-            .Where(e => e.UserId == userId)
-            .AsEnumerable()
-            .Select(e =>
-            {
-                try
-                {
-                    _ = new DateTime(e.Year, e.Month, e.Day);
-                    return e;
-                }
-                catch
-                {
-                    return null;
-                }
-            })
-            .Where(e => e != null)
-            .OrderBy(e => new DateTime(e!.Year, e.Month, e.Day))
-            .ThenBy(e => e!.Time)
-            .Take(5)
-            .Select(e => e!)
-            .ToList();
-
-        RecentGrades = _context.GradeRecords
-            .Include(r => r.Student)
-            .Include(r => r.SchoolClass)
-            .Where(r => r.SchoolClass != null && r.SchoolClass.TeacherId == userId)
-            .OrderByDescending(r => r.DateRecorded)
-            .ThenByDescending(r => r.Id)
-            .Take(10)
-            .ToList();
+        ClassCount = _repository.GetClassCount(userId.Value);
+        StudentCount = _repository.GetDistinctStudentCount(userId.Value);
+        UpcomingEvents = _repository.GetUpcomingEvents(userId.Value, DateTime.Today, 5);
+        RecentGrades = _repository.GetRecentGrades(userId.Value, 10);
 
         return Page();
     }

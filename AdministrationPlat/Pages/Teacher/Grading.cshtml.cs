@@ -1,19 +1,18 @@
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
+using DAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace AdministrationPlat.Pages.Teacher;
 
 public class Grading : PageModel
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDataRepository _repository;
 
-    public Grading(ApplicationDbContext context)
+    public Grading(IDataRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public List<SchoolClass> AvailableClasses { get; private set; } = new();
@@ -101,49 +100,12 @@ public class Grading : PageModel
 
         AssessmentName = AssessmentName.Trim();
 
-        var existing = _context.GradeRecords
-            .Where(r => r.SchoolClassId == SelectedClassId &&
-                        r.Assessment == AssessmentName &&
-                        r.DateRecorded == AssessmentDate)
-            .ToList();
-
-        var inputLookup = StudentGrades.ToDictionary(g => g.StudentId, g => g);
-
-        foreach (var record in existing)
-        {
-            if (inputLookup.TryGetValue(record.StudentId, out var input) && input.Score.HasValue)
-            {
-                record.Score = input.Score;
-                record.MaxScore = MaxScore;
-                record.Comments = string.IsNullOrWhiteSpace(input.Comment) ? null : input.Comment.Trim();
-            }
-            else
-            {
-                _context.GradeRecords.Remove(record);
-            }
-        }
-
-        var storedIds = existing.Select(r => r.StudentId).ToHashSet();
-        foreach (var grade in StudentGrades)
-        {
-            if (!grade.Score.HasValue || storedIds.Contains(grade.StudentId))
-            {
-                continue;
-            }
-
-            _context.GradeRecords.Add(new GradeRecord
-            {
-                StudentId = grade.StudentId,
-                SchoolClassId = SelectedClassId,
-                Assessment = AssessmentName,
-                DateRecorded = AssessmentDate,
-                Score = grade.Score,
-                MaxScore = MaxScore,
-                Comments = string.IsNullOrWhiteSpace(grade.Comment) ? null : grade.Comment.Trim()
-            });
-        }
-
-        _context.SaveChanges();
+        _repository.SaveGradeRecords(
+            SelectedClassId,
+            AssessmentName,
+            AssessmentDate,
+            MaxScore,
+            StudentGrades.Select(g => (g.StudentId, g.Score, g.Comment)));
 
         TempData["GradingMessage"] = "Grades saved.";
         FillGradeSheet();
@@ -153,25 +115,17 @@ public class Grading : PageModel
 
     private void LoadClasses(int userId)
     {
-        AvailableClasses = _context.Classes
-            .Where(c => c.TeacherId == userId)
-            .OrderBy(c => c.Name)
-            .ToList();
+        AvailableClasses = _repository.GetClassesForTeacher(userId);
 
         if (AvailableClasses.Count == 0)
         {
-            AvailableClasses = _context.Classes
-                .OrderBy(c => c.Name)
-                .ToList();
+            AvailableClasses = _repository.GetAllClasses();
         }
     }
 
     private void FillGradeSheet()
     {
-        var classInfo = _context.Classes
-            .Include(c => c.Enrollments)
-            .ThenInclude(e => e.Student)
-            .FirstOrDefault(c => c.Id == SelectedClassId);
+        var classInfo = _repository.GetClassWithEnrollments(SelectedClassId);
 
         if (classInfo == null)
         {
@@ -189,10 +143,7 @@ public class Grading : PageModel
             .ThenBy(s => s.FirstName)
             .ToList();
 
-        var existing = _context.GradeRecords
-            .Where(r => r.SchoolClassId == SelectedClassId &&
-                        r.Assessment == AssessmentName &&
-                        r.DateRecorded == AssessmentDate)
+        var existing = _repository.GetGradeRecords(SelectedClassId, AssessmentName, AssessmentDate)
             .ToDictionary(r => r.StudentId, r => r);
 
         StudentGrades = students

@@ -1,19 +1,18 @@
-using AdministrationPlat.Data;
 using AdministrationPlat.Models;
+using DAL;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
-using Microsoft.EntityFrameworkCore;
 
 namespace AdministrationPlat.Pages.Shared.Teacher;
 
 public class Attendance : PageModel
 {
-    private readonly ApplicationDbContext _context;
+    private readonly IDataRepository _repository;
 
-    public Attendance(ApplicationDbContext context)
+    public Attendance(IDataRepository repository)
     {
-        _context = context;
+        _repository = repository;
     }
 
     public List<SchoolClass> AvailableClasses { get; private set; } = new();
@@ -79,40 +78,10 @@ public class Attendance : PageModel
             return Page();
         }
 
-        var existing = _context.AttendanceRecords
-            .Where(r => r.SchoolClassId == SelectedClassId && r.Date == SelectedDate)
-            .ToList();
-
-        var inputs = StudentAttendances.ToDictionary(s => s.StudentId, s => s.IsPresent);
-
-        foreach (var record in existing)
-        {
-            if (inputs.TryGetValue(record.StudentId, out var isPresent))
-            {
-                record.IsPresent = isPresent;
-            }
-            else
-            {
-                _context.AttendanceRecords.Remove(record);
-            }
-        }
-
-        var existingIds = existing.Select(r => r.StudentId).ToHashSet();
-        foreach (var entry in StudentAttendances)
-        {
-            if (!existingIds.Contains(entry.StudentId))
-            {
-                _context.AttendanceRecords.Add(new AttendanceRecord
-                {
-                    StudentId = entry.StudentId,
-                    SchoolClassId = SelectedClassId,
-                    Date = SelectedDate,
-                    IsPresent = entry.IsPresent
-                });
-            }
-        }
-
-        _context.SaveChanges();
+        _repository.SaveAttendanceRecords(
+            SelectedClassId,
+            SelectedDate,
+            StudentAttendances.Select(a => (a.StudentId, a.IsPresent)));
 
         TempData["AttendanceSaved"] = "Attendance saved.";
         FillRoster();
@@ -122,37 +91,21 @@ public class Attendance : PageModel
 
     private void LoadClasses(int userId)
     {
-        AvailableClasses = _context.Classes
-            .Where(c => c.TeacherId == userId)
-            .OrderBy(c => c.Name)
-            .ToList();
+        AvailableClasses = _repository.GetClassesForTeacher(userId);
 
         if (AvailableClasses.Count == 0)
         {
-            AvailableClasses = _context.Classes
-                .OrderBy(c => c.Name)
-                .ToList();
+            AvailableClasses = _repository.GetAllClasses();
         }
     }
 
     private void FillRoster()
     {
-        ActiveClassName = _context.Classes
-            .Where(c => c.Id == SelectedClassId)
-            .Select(c => c.Name)
-            .FirstOrDefault() ?? string.Empty;
+        ActiveClassName = _repository.GetClassName(SelectedClassId) ?? string.Empty;
 
-        var roster = _context.Enrollments
-            .Where(e => e.SchoolClassId == SelectedClassId)
-            .Include(e => e.Student)
-            .Where(e => e.Student != null)
-            .Select(e => e.Student!)
-            .OrderBy(s => s.LastName)
-            .ThenBy(s => s.FirstName)
-            .ToList();
+        var roster = _repository.GetStudentsForClass(SelectedClassId);
 
-        var existing = _context.AttendanceRecords
-            .Where(r => r.SchoolClassId == SelectedClassId && r.Date == SelectedDate)
+        var existing = _repository.GetAttendanceRecords(SelectedClassId, SelectedDate)
             .ToDictionary(r => r.StudentId, r => r.IsPresent);
 
         StudentAttendances = roster

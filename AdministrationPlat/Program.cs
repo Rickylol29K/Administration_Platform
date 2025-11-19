@@ -1,14 +1,16 @@
-using AdministrationPlat.Data;
-using Microsoft.EntityFrameworkCore;
+using DAL;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
-// ✅ Register your DbContext here
-builder.Services.AddDbContext<ApplicationDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+builder.Services.AddSingleton<IDataRepository>(_ =>
+{
+    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
+                           ?? throw new InvalidOperationException("Missing DefaultConnection connection string.");
+    return new SqlDataRepository(connectionString);
+});
 
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
