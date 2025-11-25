@@ -12,6 +12,7 @@ public interface IDataRepository
     List<SchoolClass> GetAllClasses();
     SchoolClass AddClass(SchoolClass schoolClass);
     SchoolClass? GetClassWithEnrollments(int classId, int? teacherId = null);
+    string? GetClassName(int classId);
 
     Student? GetStudentByEmail(string email);
     Student AddStudent(Student student);
@@ -19,8 +20,6 @@ public interface IDataRepository
     void AddEnrollment(int studentId, int classId);
     ClassEnrollment? GetEnrollmentWithDetails(int enrollmentId, int teacherId);
     void RemoveEnrollment(int enrollmentId);
-
-    string? GetClassName(int classId);
     List<Student> GetStudentsForClass(int classId);
 
     List<AttendanceRecord> GetAttendanceRecords(int classId, DateTime date);
@@ -28,11 +27,11 @@ public interface IDataRepository
 
     List<GradeRecord> GetGradeRecords(int classId, string assessment, DateTime date);
     void SaveGradeRecords(int classId, string assessment, DateTime date, decimal? maxScore, IEnumerable<(int StudentId, decimal? Score, string? Comment)> records);
+    List<GradeRecord> GetRecentGrades(int teacherId, int take);
 
     int GetClassCount(int teacherId);
     int GetDistinctStudentCount(int teacherId);
     List<EventItem> GetUpcomingEvents(int userId, DateTime today, int take);
-    List<GradeRecord> GetRecentGrades(int teacherId, int take);
 
     List<EventItem> GetEventsForMonth(int userId, int year, int month);
     EventItem? GetEvent(Guid id, int userId);
