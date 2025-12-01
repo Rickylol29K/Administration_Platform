@@ -1,4 +1,5 @@
 using DAL;
+using Logic;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -10,6 +11,11 @@ builder.Services.AddSingleton<IDataRepository>(_ =>
     var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
                            ?? throw new InvalidOperationException("Missing DefaultConnection connection string.");
     return new SqlDataRepository(connectionString);
+});
+builder.Services.AddSingleton<ILogicService>(sp =>
+{
+    var repository = sp.GetRequiredService<IDataRepository>();
+    return new ApplicationLogic(repository);
 });
 
 builder.Services.AddDistributedMemoryCache();

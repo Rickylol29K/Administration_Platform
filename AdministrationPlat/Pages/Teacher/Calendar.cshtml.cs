@@ -1,5 +1,6 @@
 using AdministrationPlat.Models;
-using DAL;
+using Logic;
+using Logic.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,11 +9,11 @@ namespace AdministrationPlat.Pages.Teacher;
 
 public class CalendarModel : PageModel
 {
-    private readonly IDataRepository _repository;
+    private readonly ILogicService _logic;
 
-    public CalendarModel(IDataRepository repository)
+    public CalendarModel(ILogicService logic)
     {
-        _repository = repository;
+        _logic = logic;
     }
 
     public List<int> Days { get; private set; } = new();
@@ -37,8 +38,7 @@ public class CalendarModel : PageModel
         }
 
         SelectedDay = DateTime.Today.Day;
-        BuildCalendar();
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -52,8 +52,7 @@ public class CalendarModel : PageModel
 
         SelectedDay = selectedDay;
         ShowOverlay = true;
-        BuildCalendar();
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -66,8 +65,7 @@ public class CalendarModel : PageModel
         }
 
         ShowOverlay = false;
-        BuildCalendar();
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -80,42 +78,32 @@ public class CalendarModel : PageModel
         }
 
         SelectedDay = selectedDay;
-        BuildCalendar();
-        if (!ModelState.IsValid)
+        LoadCalendar(userId.Value);
+
+        var toCreate = new EventItem
         {
+            Id = Guid.NewGuid(),
+            Title = NewEvent.Title,
+            Description = NewEvent.Description,
+            Location = NewEvent.Location,
+            Time = NewEvent.Time,
+            Day = selectedDay,
+            Month = Month,
+            Year = Year
+        };
+
+        var result = _logic.CreateEvent(userId.Value, toCreate);
+        if (!result.Success)
+        {
+            ModelState.AddModelError("NewEvent.Title", result.Error ?? "Event title is required.");
             ShowOverlay = true;
-            LoadEvents(userId.Value);
+            LoadCalendar(userId.Value);
             return Page();
         }
-
-        NewEvent.Id = Guid.NewGuid();
-        NewEvent.Day = selectedDay;
-        NewEvent.Month = Month;
-        NewEvent.Year = Year;
-        NewEvent.UserId = userId.Value;
-        NewEvent.Title = NewEvent.Title.Trim();
-        if (string.IsNullOrWhiteSpace(NewEvent.Title))
-        {
-            ModelState.AddModelError("NewEvent.Title", "Event title is required.");
-            ShowOverlay = true;
-            LoadEvents(userId.Value);
-            return Page();
-        }
-        NewEvent.Description = string.IsNullOrWhiteSpace(NewEvent.Description)
-            ? null
-            : NewEvent.Description.Trim();
-        NewEvent.Location = string.IsNullOrWhiteSpace(NewEvent.Location)
-            ? null
-            : NewEvent.Location.Trim();
-        NewEvent.Time = string.IsNullOrWhiteSpace(NewEvent.Time)
-            ? null
-            : NewEvent.Time.Trim();
-
-        _repository.AddEvent(NewEvent);
 
         ResetFormState();
         ShowOverlay = true;
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -128,16 +116,12 @@ public class CalendarModel : PageModel
         }
 
         SelectedDay = selectedDay;
-        BuildCalendar();
+        LoadCalendar(userId.Value);
 
-        var ev = _repository.GetEvent(id, userId.Value);
-        if (ev != null)
-        {
-            _repository.DeleteEvent(id, userId.Value);
-        }
+        _logic.DeleteEventForUser(userId.Value, id);
 
         ShowOverlay = true;
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -150,9 +134,9 @@ public class CalendarModel : PageModel
         }
 
         SelectedDay = selectedDay;
-        BuildCalendar();
+        LoadCalendar(userId.Value);
 
-        var ev = _repository.GetEvent(id, userId.Value);
+        var ev = _logic.GetEvent(id, userId.Value);
         if (ev != null)
         {
             EditingId = id;
@@ -171,7 +155,7 @@ public class CalendarModel : PageModel
         }
 
         ShowOverlay = true;
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
@@ -184,65 +168,46 @@ public class CalendarModel : PageModel
         }
 
         SelectedDay = selectedDay;
-        BuildCalendar();
-        if (!ModelState.IsValid)
+        LoadCalendar(userId.Value);
+
+        var updated = new EventItem
         {
+            Id = NewEvent.Id,
+            Title = NewEvent.Title,
+            Description = NewEvent.Description,
+            Location = NewEvent.Location,
+            Time = NewEvent.Time,
+            Day = selectedDay,
+            Month = Month,
+            Year = Year
+        };
+
+        var result = _logic.UpdateEventDetails(userId.Value, updated);
+        if (!result.Success)
+        {
+            ModelState.AddModelError("NewEvent.Title", result.Error ?? "Unable to update event.");
             ShowOverlay = true;
-            LoadEvents(userId.Value);
+            LoadCalendar(userId.Value);
             return Page();
-        }
-
-        var ev = _repository.GetEvent(NewEvent.Id, userId.Value);
-        if (ev != null)
-        {
-            var title = NewEvent.Title?.Trim() ?? string.Empty;
-            if (string.IsNullOrWhiteSpace(title))
-            {
-                ModelState.AddModelError("NewEvent.Title", "Event title is required.");
-                ShowOverlay = true;
-                LoadEvents(userId.Value);
-                return Page();
-            }
-
-            ev.Title = title;
-            ev.Description = string.IsNullOrWhiteSpace(NewEvent.Description)
-                ? null
-                : NewEvent.Description.Trim();
-            ev.Location = string.IsNullOrWhiteSpace(NewEvent.Location)
-                ? null
-                : NewEvent.Location.Trim();
-            ev.Time = string.IsNullOrWhiteSpace(NewEvent.Time)
-                ? null
-                : NewEvent.Time.Trim();
-            _repository.UpdateEvent(ev);
         }
 
         EditingId = Guid.Empty;
         ResetFormState();
         ShowOverlay = true;
-        LoadEvents(userId.Value);
+        LoadCalendar(userId.Value);
         return Page();
     }
 
-    private void BuildCalendar()
+    private void LoadCalendar(int userId)
     {
-        var today = DateTime.Today;
-        Year = today.Year;
-        Month = today.Month;
-        MonthName = today.ToString("MMMM");
+        var view = _logic.BuildCalendarView(userId, SelectedDay);
 
-        var daysInMonth = DateTime.DaysInMonth(Year, Month);
-        Days = Enumerable.Range(1, daysInMonth).ToList();
-    }
-
-    private void LoadEvents(int userId)
-    {
-        MonthEvents = _repository.GetEventsForMonth(userId, Year, Month);
-
-        SelectedDayEvents = MonthEvents
-            .Where(e => e.Day == SelectedDay)
-            .OrderBy(e => e.Time)
-            .ToList();
+        Year = view.Calendar.Year;
+        Month = view.Calendar.Month;
+        MonthName = view.Calendar.MonthName;
+        Days = view.Calendar.Days;
+        MonthEvents = view.MonthEvents;
+        SelectedDayEvents = view.SelectedDayEvents;
     }
 
     private void ResetFormState()

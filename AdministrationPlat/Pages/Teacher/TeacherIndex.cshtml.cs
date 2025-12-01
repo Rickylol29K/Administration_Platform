@@ -1,5 +1,5 @@
 using AdministrationPlat.Models;
-using DAL;
+using Logic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,11 +8,11 @@ namespace AdministrationPlat.Pages.Shared.Teacher;
 
 public class TeacherIndex : PageModel
 {
-    private readonly IDataRepository _repository;
+    private readonly ILogicService _logic;
 
-    public TeacherIndex(IDataRepository repository)
+    public TeacherIndex(ILogicService logic)
     {
-        _repository = repository;
+        _logic = logic;
     }
 
     public int ClassCount { get; private set; }
@@ -28,10 +28,10 @@ public class TeacherIndex : PageModel
             return RedirectToPage("/Index");
         }
 
-        ClassCount = _repository.GetClassCount(userId.Value);
-        StudentCount = _repository.GetDistinctStudentCount(userId.Value);
-        UpcomingEvents = _repository.GetUpcomingEvents(userId.Value, DateTime.Today, 5);
-        RecentGrades = _repository.GetRecentGrades(userId.Value, 10);
+        ClassCount = _logic.GetClassCount(userId.Value);
+        StudentCount = _logic.GetDistinctStudentCount(userId.Value);
+        UpcomingEvents = _logic.GetUpcomingEvents(userId.Value, DateTime.Today, 5);
+        RecentGrades = _logic.GetRecentGrades(userId.Value, 10);
 
         return Page();
     }

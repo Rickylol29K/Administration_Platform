@@ -1,5 +1,5 @@
 using AdministrationPlat.Models;
-using DAL;
+using Logic;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,11 +8,11 @@ namespace AdministrationPlat.Pages.Teacher;
 
 public class Classes : PageModel
 {
-    private readonly IDataRepository _repository;
+    private readonly ILogicService _logic;
 
-    public Classes(IDataRepository repository)
+    public Classes(ILogicService logic)
     {
-        _repository = repository;
+        _logic = logic;
     }
 
     public List<SchoolClass> TeacherClasses { get; private set; } = new();
@@ -71,17 +71,19 @@ public class Classes : PageModel
             return Page();
         }
 
-        var schoolClass = new SchoolClass
+        var result = _logic.CreateClass(
+            userId.Value,
+            NewClassName,
+            NewClassRoom,
+            NewClassDescription);
+
+        if (!result.Success || result.Value == null)
         {
-            Name = NewClassName.Trim(),
-            Room = string.IsNullOrWhiteSpace(NewClassRoom) ? null : NewClassRoom.Trim(),
-            Description = string.IsNullOrWhiteSpace(NewClassDescription) ? null : NewClassDescription.Trim(),
-            TeacherId = userId.Value
-        };
+            ModelState.AddModelError(nameof(NewClassName), result.Error ?? "Unable to create class.");
+            return Page();
+        }
 
-        _repository.AddClass(schoolClass);
-
-        TempData["ClassMessage"] = $"Class \"{schoolClass.Name}\" created.";
+        TempData["ClassMessage"] = $"Class \"{result.Value.Name}\" created.";
 
         ModelState.Clear();
         NewClassName = string.Empty;
@@ -102,14 +104,16 @@ public class Classes : PageModel
 
         SelectedClassId = classId;
         LoadTeacherClasses(userId.Value);
-        LoadActiveClass(userId.Value);
-
-        if (ActiveClass == null)
+        var overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId.Value);
+        if (!overlayResult.Success || overlayResult.Value?.ActiveClass == null)
         {
-            ModelState.AddModelError(string.Empty, "Unable to load the requested class.");
+            ModelState.AddModelError(string.Empty, overlayResult.Error ?? "Unable to load the requested class.");
             ShowOverlay = false;
             return Page();
         }
+
+        ActiveClass = overlayResult.Value.ActiveClass;
+        ActiveEnrollments = overlayResult.Value.Enrollments;
 
         ShowOverlay = true;
         return Page();
@@ -124,57 +128,35 @@ public class Classes : PageModel
         }
 
         LoadTeacherClasses(userId.Value);
-        LoadActiveClass(userId.Value);
+        var result = _logic.AddStudentToClass(
+            userId.Value,
+            SelectedClassId,
+            NewStudentFirstName,
+            NewStudentLastName,
+            NewStudentEmail);
 
-        if (ActiveClass == null)
+        if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, "Class not found.");
-            return Page();
-        }
-
-        ShowOverlay = true;
-
-        if (string.IsNullOrWhiteSpace(NewStudentFirstName) || string.IsNullOrWhiteSpace(NewStudentLastName))
-        {
-            ModelState.AddModelError(string.Empty, "Student first and last name are required.");
-            return Page();
-        }
-
-        Student? student = null;
-        if (!string.IsNullOrWhiteSpace(NewStudentEmail))
-        {
-            student = _repository.GetStudentByEmail(NewStudentEmail.Trim());
-        }
-
-        if (student == null)
-        {
-            student = new Student
+            ModelState.AddModelError(string.Empty, result.Message);
+            ShowOverlay = true;
+            LoadTeacherClasses(userId.Value);
+            if (result.Overlay.ActiveClass != null)
             {
-                FirstName = NewStudentFirstName.Trim(),
-                LastName = NewStudentLastName.Trim(),
-                Email = string.IsNullOrWhiteSpace(NewStudentEmail) ? null : NewStudentEmail.Trim()
-            };
-            _repository.AddStudent(student);
+                ActiveClass = result.Overlay.ActiveClass;
+                ActiveEnrollments = result.Overlay.Enrollments;
+            }
+            return Page();
         }
 
-        var alreadyEnrolled = _repository.EnrollmentExists(student.Id, SelectedClassId);
-
-        if (!alreadyEnrolled)
-        {
-            _repository.AddEnrollment(student.Id, SelectedClassId);
-            TempData["ClassMessage"] = $"{student.FullName} added to {ActiveClass.Name}.";
-        }
-        else
-        {
-            TempData["ClassMessage"] = $"{student.FullName} is already enrolled in this class.";
-        }
+        TempData["ClassMessage"] = result.Message;
 
         ModelState.Clear();
         NewStudentFirstName = string.Empty;
         NewStudentLastName = string.Empty;
         NewStudentEmail = null;
 
-        LoadActiveClass(userId.Value);
+        LoadOverlay(userId.Value, SelectedClassId);
+        ShowOverlay = true;
         return Page();
     }
 
@@ -188,16 +170,24 @@ public class Classes : PageModel
 
         LoadTeacherClasses(userId.Value);
 
-        var enrollment = _repository.GetEnrollmentWithDetails(enrollmentId, userId.Value);
+        var result = _logic.RemoveStudentFromClass(userId.Value, enrollmentId);
 
-        if (enrollment != null)
+        if (result.Success)
         {
-            SelectedClassId = enrollment.SchoolClassId;
-            _repository.RemoveEnrollment(enrollmentId);
-            TempData["ClassMessage"] = $"{enrollment.Student?.FullName ?? "Student"} removed from {enrollment.SchoolClass?.Name}.";
+            TempData["ClassMessage"] = result.Message;
+            SelectedClassId = result.Overlay.ActiveClass?.Id ?? SelectedClassId;
+        }
+        else
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
         }
 
-        LoadActiveClass(userId.Value);
+        if (result.Overlay.ActiveClass != null)
+        {
+            ActiveClass = result.Overlay.ActiveClass;
+            ActiveEnrollments = result.Overlay.Enrollments;
+        }
+
         ShowOverlay = true;
         return Page();
     }
@@ -217,17 +207,21 @@ public class Classes : PageModel
 
     private void LoadTeacherClasses(int userId)
     {
-        TeacherClasses = _repository.GetClassesForTeacher(userId);
+        TeacherClasses = _logic.GetClassesForTeacher(userId);
     }
 
     private void LoadActiveClass(int userId)
     {
-        ActiveClass = _repository.GetClassWithEnrollments(SelectedClassId, userId);
+        LoadOverlay(userId, SelectedClassId);
+    }
 
-        ActiveEnrollments = ActiveClass?.Enrollments
-            .Where(e => e.Student != null)
-            .OrderBy(e => e.Student!.LastName)
-            .ThenBy(e => e.Student!.FirstName)
-            .ToList() ?? new List<ClassEnrollment>();
+    private void LoadOverlay(int userId, int classId)
+    {
+        var overlay = _logic.LoadClassOverlay(classId, userId);
+        if (overlay.Success && overlay.Value != null)
+        {
+            ActiveClass = overlay.Value.ActiveClass;
+            ActiveEnrollments = overlay.Value.Enrollments;
+        }
     }
 }

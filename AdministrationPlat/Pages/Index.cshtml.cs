@@ -1,18 +1,18 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using AdministrationPlat.Models;
-using DAL;
+using Logic;
 
 namespace AdministrationPlat.Pages
 {
     public class IndexModel : PageModel
     {
-        private readonly IDataRepository _repository;
+    private readonly ILogicService _logic;
 
-        public IndexModel(IDataRepository repository)
-        {
-            _repository = repository;
-        }
+    public IndexModel(ILogicService logic)
+    {
+        _logic = logic;
+    }
 
         [BindProperty] public string LoginUsername { get; set; } = string.Empty;
         [BindProperty] public string LoginPassword { get; set; } = string.Empty;
@@ -26,58 +26,37 @@ namespace AdministrationPlat.Pages
         {
         }
 
-        public IActionResult OnPostLogin()
+    public IActionResult OnPostLogin()
+    {
+        var result = _logic.Login(LoginUsername, LoginPassword);
+
+        if (result.Success && result.Value != null)
         {
-            var username = LoginUsername?.Trim() ?? string.Empty;
-            var password = LoginPassword?.Trim() ?? string.Empty;
+            HttpContext.Session.SetInt32("UserId", result.Value.Id);
+            HttpContext.Session.SetString("Username", result.Value.Username);
+            Message = $"Welcome back, {result.Value.Username}!";
+            return RedirectToPage("/Teacher/TeacherIndex");
+        }
 
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                Message = "Enter both username and password.";
-                MessageCssClass = "validation-summary";
-                return Page();
-            }
+        Message = result.Error ?? "Invalid username or password.";
+        MessageCssClass = "validation-summary";
+        return Page();
+    }
 
-            var user = _repository.GetUser(username, password);
+    public IActionResult OnPostRegister()
+    {
+        var result = _logic.Register(RegisterUsername, RegisterPassword);
 
-            if (user != null)
-            {
-                HttpContext.Session.SetInt32("UserId", user.Id);
-                HttpContext.Session.SetString("Username", user.Username);
-                Message = $"Welcome back, {user.Username}!";
-                return RedirectToPage("/Teacher/TeacherIndex");
-            }
-
-            Message = "Invalid username or password.";
+        if (!result.Success)
+        {
+            Message = result.Error ?? "Registration failed.";
             MessageCssClass = "validation-summary";
             return Page();
         }
 
-        public IActionResult OnPostRegister()
-        {
-            var username = RegisterUsername?.Trim() ?? string.Empty;
-            var password = RegisterPassword?.Trim() ?? string.Empty;
-
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
-            {
-                Message = "Choose a username and password.";
-                MessageCssClass = "validation-summary";
-                return Page();
-            }
-
-            var exists = _repository.UsernameExists(username);
-            if (exists)
-            {
-                Message = "Username already exists.";
-                MessageCssClass = "validation-summary";
-                return Page();
-            }
-
-            var user = _repository.CreateUser(username, password);
-
-            Message = "Registration successful! You can now log in.";
-            MessageCssClass = "status-message";
-            return Page();
-        }
+        Message = "Registration successful! You can now log in.";
+        MessageCssClass = "status-message";
+        return Page();
+    }
     }
 }

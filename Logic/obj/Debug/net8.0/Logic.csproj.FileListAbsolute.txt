@@ -1,0 +1,16 @@
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/bin/Debug/net8.0/Logic.deps.json
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/bin/Debug/net8.0/Logic.dll
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/bin/Debug/net8.0/Logic.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/bin/Debug/net8.0/DAL.dll
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/bin/Debug/net8.0/DAL.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.csproj.AssemblyReference.cache
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.GeneratedMSBuildEditorConfig.editorconfig
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.AssemblyInfoInputs.cache
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.AssemblyInfo.cs
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.csproj.CoreCompileInputs.cache
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.sourcelink.json
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.csproj.Up2Date
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.dll
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/refint/Logic.dll
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/Logic.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/Logic/obj/Debug/net8.0/ref/Logic.dll

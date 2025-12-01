@@ -1,5 +1,6 @@
 using AdministrationPlat.Models;
-using DAL;
+using Logic;
+using Logic.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -8,11 +9,11 @@ namespace AdministrationPlat.Pages.Teacher;
 
 public class Grading : PageModel
 {
-    private readonly IDataRepository _repository;
+    private readonly ILogicService _logic;
 
-    public Grading(IDataRepository repository)
+    public Grading(ILogicService logic)
     {
-        _repository = repository;
+        _logic = logic;
     }
 
     public List<SchoolClass> AvailableClasses { get; private set; } = new();
@@ -32,7 +33,7 @@ public class Grading : PageModel
     public decimal? MaxScore { get; set; }
 
     [BindProperty]
-    public List<StudentGradeInput> StudentGrades { get; set; } = new();
+    public List<StudentGradeEntry> StudentGrades { get; set; } = new();
 
     public IActionResult OnGet()
     {
@@ -84,7 +85,7 @@ public class Grading : PageModel
 
         LoadClasses(userId);
         AssessmentDate = AssessmentDate.Date;
-        StudentGrades ??= new List<StudentGradeInput>();
+        StudentGrades ??= new List<StudentGradeEntry>();
 
         if (SelectedClassId == 0)
         {
@@ -100,61 +101,44 @@ public class Grading : PageModel
 
         AssessmentName = AssessmentName.Trim();
 
-        _repository.SaveGradeRecords(
+        var result = _logic.SaveGrades(
             SelectedClassId,
             AssessmentName,
             AssessmentDate,
             MaxScore,
-            StudentGrades.Select(g => (g.StudentId, g.Score, g.Comment)));
+            StudentGrades);
 
-        TempData["GradingMessage"] = "Grades saved.";
-        FillGradeSheet();
-        SheetLoaded = true;
+        if (result.Success && result.Value != null)
+        {
+            TempData["GradingMessage"] = "Grades saved.";
+            ActiveClassName = result.Value.ClassName;
+            StudentGrades = result.Value.Entries;
+            SheetLoaded = true;
+            return Page();
+        }
+
+        ModelState.AddModelError(string.Empty, result.Error ?? "Unable to save grades.");
         return Page();
     }
 
     private void LoadClasses(int userId)
     {
-        AvailableClasses = _repository.GetClassesForTeacher(userId);
-
-        if (AvailableClasses.Count == 0)
-        {
-            AvailableClasses = _repository.GetAllClasses();
-        }
+        AvailableClasses = _logic.GetClassesForUserOrFallback(userId);
     }
 
     private void FillGradeSheet()
     {
-        var classInfo = _repository.GetClassWithEnrollments(SelectedClassId);
+        var sheetResult = _logic.BuildGradeSheet(SelectedClassId, AssessmentName, AssessmentDate);
 
-        if (classInfo == null)
+        if (!sheetResult.Success || sheetResult.Value == null)
         {
-            StudentGrades = new List<StudentGradeInput>();
+            StudentGrades = new List<StudentGradeEntry>();
             ActiveClassName = string.Empty;
             return;
         }
 
-        ActiveClassName = classInfo.Name;
-
-        var students = classInfo.Enrollments
-            .Where(e => e.Student != null)
-            .Select(e => e.Student!)
-            .OrderBy(s => s.LastName)
-            .ThenBy(s => s.FirstName)
-            .ToList();
-
-        var existing = _repository.GetGradeRecords(SelectedClassId, AssessmentName, AssessmentDate)
-            .ToDictionary(r => r.StudentId, r => r);
-
-        StudentGrades = students
-            .Select(student => new StudentGradeInput
-            {
-                StudentId = student.Id,
-                StudentName = $"{student.FirstName} {student.LastName}".Trim(),
-                Score = existing.TryGetValue(student.Id, out var record) ? record.Score : null,
-                Comment = existing.TryGetValue(student.Id, out var record2) ? record2.Comments : null
-            })
-            .ToList();
+        ActiveClassName = sheetResult.Value.ClassName;
+        StudentGrades = sheetResult.Value.Entries;
     }
 
     private bool TryGetUserId(out int userId)
@@ -163,11 +147,4 @@ public class Grading : PageModel
         return userId != 0;
     }
 
-    public class StudentGradeInput
-    {
-        public int StudentId { get; set; }
-        public string StudentName { get; set; } = string.Empty;
-        public decimal? Score { get; set; }
-        public string? Comment { get; set; }
-    }
 }
