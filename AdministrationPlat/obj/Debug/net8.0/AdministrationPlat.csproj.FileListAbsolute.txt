@@ -70,3 +70,6 @@
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Runtime.Caching.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/Logic.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/Logic.pdb
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlat/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
