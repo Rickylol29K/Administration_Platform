@@ -13,7 +13,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyCompanyAttribute("AdministrationPlat")]
 [assembly: System.Reflection.AssemblyConfigurationAttribute("Debug")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("1.0.0.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+1c24019c2b707fe1e13b5090b2aecce1ad16dcab")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("1.0.0+0cbc9c711c474bfc37a097bc6145f0471b149122")]
 [assembly: System.Reflection.AssemblyProductAttribute("AdministrationPlat")]
 [assembly: System.Reflection.AssemblyTitleAttribute("AdministrationPlat")]
 [assembly: System.Reflection.AssemblyVersionAttribute("1.0.0.0")]
