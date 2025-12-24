@@ -10,8 +10,8 @@ public partial class ApplicationLogic
         return _users.Login(username, password);
     }
 
-    public OperationResult<User> Register(string username, string password)
+    public OperationResult<User> Register(string username, string password, bool isAdmin)
     {
-        return _users.Register(username, password);
+        return _users.Register(username, password, isAdmin);
     }
 }

@@ -14,10 +14,22 @@
 
 <div class="calendar-container">
     <div class="calendar-header">
+        <form method="post" class="month-nav">
+            <input type="hidden" name="selectedMonth" value="@Model.Month" />
+            <input type="hidden" name="selectedYear" value="@Model.Year" />
+            <button type="submit" asp-page-handler="PreviousMonth" class="month-btn">&lt;</button>
+        </form>
         <h2>@Model.MonthName @Model.Year</h2>
+        <form method="post" class="month-nav">
+            <input type="hidden" name="selectedMonth" value="@Model.Month" />
+            <input type="hidden" name="selectedYear" value="@Model.Year" />
+            <button type="submit" asp-page-handler="NextMonth" class="month-btn">&gt;</button>
+        </form>
     </div>
 
     <form method="post">
+        <input type="hidden" name="selectedMonth" value="@Model.Month" />
+        <input type="hidden" name="selectedYear" value="@Model.Year" />
         <div class="calendar-weekdays">
             <div>Mon</div><div>Tue</div><div>Wed</div><div>Thu</div><div>Fri</div><div>Sat</div><div>Sun</div>
         </div>
@@ -60,6 +72,8 @@
                                 <form method="post">
                                     <input type="hidden" name="id" value="@ev.Id" />
                                     <input type="hidden" name="selectedDay" value="@Model.SelectedDay" />
+                                    <input type="hidden" name="selectedMonth" value="@Model.Month" />
+                                    <input type="hidden" name="selectedYear" value="@Model.Year" />
                                     <button type="submit" asp-page-handler="EditEvent" class="edit-btn">Edit</button>
                                     <button type="submit" asp-page-handler="DeleteEvent" class="delete-btn">Delete</button>
                                 </form>
@@ -77,6 +91,8 @@
                 <h4>@(Model.EditingId == Guid.Empty ? "Add Event" : "Edit Event")</h4>
                 <form method="post">
                     <input type="hidden" name="selectedDay" value="@Model.SelectedDay" />
+                    <input type="hidden" name="selectedMonth" value="@Model.Month" />
+                    <input type="hidden" name="selectedYear" value="@Model.Year" />
                     <input type="hidden" asp-for="NewEvent.Id" />
                     <input type="text" asp-for="NewEvent.Title" placeholder="Title" required />
                     <input type="text" asp-for="NewEvent.Time" placeholder="Time (e.g., 14:00)" />
@@ -94,6 +110,8 @@
                 </form>
 
                 <form method="post">
+                    <input type="hidden" name="selectedMonth" value="@Model.Month" />
+                    <input type="hidden" name="selectedYear" value="@Model.Year" />
                     <button type="submit" asp-page-handler="HideOverlay" class="cancel-btn">Close</button>
                 </form>
             </div>

@@ -28,4 +28,7 @@ public partial class ApplicationLogic
     public CalendarData BuildCurrentMonth() => _events.BuildCurrentMonth();
 
     public CalendarView BuildCalendarView(int userId, int selectedDay) => _events.BuildCalendarView(userId, selectedDay);
+
+    public CalendarView BuildCalendarView(int userId, int year, int month, int selectedDay) =>
+        _events.BuildCalendarView(userId, year, month, selectedDay);
 }

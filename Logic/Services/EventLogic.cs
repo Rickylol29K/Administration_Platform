@@ -91,23 +91,24 @@ internal sealed class EventLogic : IEventLogic
     public CalendarData BuildCurrentMonth()
     {
         var today = DateTime.Today;
-        var daysInMonth = DateTime.DaysInMonth(today.Year, today.Month);
-        return new CalendarData
-        {
-            Year = today.Year,
-            Month = today.Month,
-            MonthName = today.ToString("MMMM"),
-            Days = Enumerable.Range(1, daysInMonth).ToList()
-        };
+        return BuildMonth(today.Year, today.Month);
     }
 
     public CalendarView BuildCalendarView(int userId, int selectedDay)
     {
-        var calendar = BuildCurrentMonth();
+        var today = DateTime.Today;
+        return BuildCalendarView(userId, today.Year, today.Month, selectedDay);
+    }
+
+    public CalendarView BuildCalendarView(int userId, int year, int month, int selectedDay)
+    {
+        var calendar = BuildMonth(year, month);
         var monthEvents = _repository.GetEventsForMonth(userId, calendar.Year, calendar.Month);
 
+        var safeSelectedDay = Math.Clamp(selectedDay, 1, calendar.Days.Count);
+
         var selectedEvents = monthEvents
-            .Where(e => e.Day == selectedDay)
+            .Where(e => e.Day == safeSelectedDay)
             .OrderBy(e => e.Time)
             .ToList();
 
@@ -116,6 +117,21 @@ internal sealed class EventLogic : IEventLogic
             Calendar = calendar,
             MonthEvents = monthEvents,
             SelectedDayEvents = selectedEvents
+        };
+    }
+
+    private static CalendarData BuildMonth(int year, int month)
+    {
+        var safeMonth = Math.Clamp(month, 1, 12);
+        var daysInMonth = DateTime.DaysInMonth(year, safeMonth);
+        var date = new DateTime(year, safeMonth, 1);
+
+        return new CalendarData
+        {
+            Year = year,
+            Month = safeMonth,
+            MonthName = date.ToString("MMMM"),
+            Days = Enumerable.Range(1, daysInMonth).ToList()
         };
     }
 }

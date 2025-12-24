@@ -30,7 +30,7 @@ internal sealed class UserLogic : IUserLogic
             : OperationResult<User>.Fail("Invalid username or password.");
     }
 
-    public OperationResult<User> Register(string username, string password)
+    public OperationResult<User> Register(string username, string password, bool isAdmin)
     {
         var trimmedUsername = username?.Trim() ?? string.Empty;
         var trimmedPassword = password?.Trim() ?? string.Empty;
@@ -45,13 +45,17 @@ internal sealed class UserLogic : IUserLogic
             return OperationResult<User>.Fail("Username already exists.");
         }
 
-        var user = _repository.CreateUser(trimmedUsername, trimmedPassword);
+        var user = _repository.CreateUser(trimmedUsername, trimmedPassword, isAdmin);
         return OperationResult<User>.Ok(user);
     }
 
     public User? GetUser(string username, string password) => _repository.GetUser(username, password);
 
+    public User? GetUserById(int id) => _repository.GetUserById(id);
+
     public bool UsernameExists(string username) => _repository.UsernameExists(username);
 
-    public User CreateUser(string username, string password) => _repository.CreateUser(username, password);
+    public User CreateUser(string username, string password, bool isAdmin) => _repository.CreateUser(username, password, isAdmin);
+
+    public List<User> GetTeachers() => _repository.GetTeachers();
 }

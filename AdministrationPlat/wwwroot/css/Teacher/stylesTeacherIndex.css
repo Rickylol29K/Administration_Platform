@@ -30,7 +30,8 @@
 }
 
 .event-list,
-.grades-list {
+.grades-list,
+.announcement-list {
     list-style: none;
     padding-left: 0;
     margin: 0;
@@ -40,7 +41,8 @@
 }
 
 .event-list li,
-.grades-list li {
+.grades-list li,
+.announcement-list li {
     border: 1px solid #dddddd;
     padding: 10px;
     background-color: #f9f9f9;
@@ -49,6 +51,19 @@
 .muted {
     color: #555555;
     font-size: 13px;
+}
+
+.inline-form {
+    display: inline;
+}
+
+.tiny-delete {
+    background: none;
+    border: none;
+    color: #b00020;
+    padding: 0;
+    font-size: 12px;
+    cursor: pointer;
 }
 
 .grade-header {

@@ -125,8 +125,10 @@ public class CalendarTests
         public void DeleteEvent(Guid id, int userId) => throw new NotImplementedException();
         public List<EventItem> GetUpcomingEvents(int userId, DateTime today, int take) => throw new NotImplementedException();
         public User? GetUser(string username, string password) => throw new NotImplementedException();
+        public User? GetUserById(int id) => throw new NotImplementedException();
         public bool UsernameExists(string username) => throw new NotImplementedException();
-        public User CreateUser(string username, string password) => throw new NotImplementedException();
+        public User CreateUser(string username, string password, bool isAdmin) => throw new NotImplementedException();
+        public List<User> GetTeachers() => throw new NotImplementedException();
         public List<SchoolClass> GetClassesForTeacher(int teacherId) => throw new NotImplementedException();
         public List<SchoolClass> GetAllClasses() => throw new NotImplementedException();
         public SchoolClass AddClass(SchoolClass schoolClass) => throw new NotImplementedException();
@@ -146,5 +148,10 @@ public class CalendarTests
         public List<GradeRecord> GetRecentGrades(int teacherId, int take) => throw new NotImplementedException();
         public int GetClassCount(int teacherId) => throw new NotImplementedException();
         public int GetDistinctStudentCount(int teacherId) => throw new NotImplementedException();
+        public List<Announcement> GetAnnouncements(int take) => throw new NotImplementedException();
+        public List<Announcement> GetAllAnnouncements() => throw new NotImplementedException();
+        public Announcement? GetAnnouncement(Guid id) => throw new NotImplementedException();
+        public Announcement AddAnnouncement(Announcement announcement) => throw new NotImplementedException();
+        public void DeleteAnnouncement(Guid id) => throw new NotImplementedException();
     }
 }

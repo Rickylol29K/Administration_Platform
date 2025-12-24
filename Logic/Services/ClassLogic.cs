@@ -144,6 +144,65 @@ internal sealed class ClassLogic : IClassLogic
         };
     }
 
+    public ClassMembershipResult AddStudentToClassAsAdmin(int classId, string firstName, string lastName, string? email)
+    {
+        var overlayResult = LoadClassOverlay(classId, null);
+        if (!overlayResult.Success || overlayResult.Value?.ActiveClass == null)
+        {
+            return new ClassMembershipResult
+            {
+                Success = false,
+                Message = "Class not found."
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(firstName) || string.IsNullOrWhiteSpace(lastName))
+        {
+            return new ClassMembershipResult
+            {
+                Success = false,
+                Message = "Student first and last name are required.",
+                Overlay = overlayResult.Value
+            };
+        }
+
+        Student? student = null;
+        if (!string.IsNullOrWhiteSpace(email))
+        {
+            student = _repository.GetStudentByEmail(email.Trim());
+        }
+
+        if (student == null)
+        {
+            student = new Student
+            {
+                FirstName = firstName.Trim(),
+                LastName = lastName.Trim(),
+                Email = string.IsNullOrWhiteSpace(email) ? null : email.Trim()
+            };
+            _repository.AddStudent(student);
+        }
+
+        var alreadyEnrolled = _repository.EnrollmentExists(student.Id, classId);
+        if (!alreadyEnrolled)
+        {
+            _repository.AddEnrollment(student.Id, classId);
+        }
+
+        var refreshedOverlay = LoadClassOverlay(classId, null).Value ?? overlayResult.Value;
+        var message = alreadyEnrolled
+            ? $"{student.FullName} is already enrolled in this class."
+            : $"{student.FullName} added to {overlayResult.Value.ActiveClass?.Name}.";
+
+        return new ClassMembershipResult
+        {
+            Success = true,
+            Message = message,
+            Overlay = refreshedOverlay,
+            AlreadyEnrolled = alreadyEnrolled
+        };
+    }
+
     public ClassMembershipResult RemoveStudentFromClass(int teacherId, int enrollmentId)
     {
         var enrollment = _repository.GetEnrollmentWithDetails(enrollmentId, teacherId);

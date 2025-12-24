@@ -7,6 +7,7 @@ public interface ILogicService :
     IClassLogic,
     IAttendanceLogic,
     IGradeLogic,
-    IEventLogic
+    IEventLogic,
+    IAnnouncementLogic
 {
 }

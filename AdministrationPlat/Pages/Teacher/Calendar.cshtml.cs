@@ -16,7 +16,6 @@ public class CalendarModel : PageModel
         _logic = logic;
     }
 
-    //testForGit
     public List<int> Days { get; private set; } = new();
     public int Year { get; private set; }
     public string MonthName { get; private set; } = string.Empty;
@@ -24,6 +23,8 @@ public class CalendarModel : PageModel
 
     [BindProperty] public bool ShowOverlay { get; set; }
     [BindProperty] public int SelectedDay { get; set; }
+    [BindProperty] public int SelectedMonth { get; set; }
+    [BindProperty] public int SelectedYear { get; set; }
     [BindProperty] public EventItem NewEvent { get; set; } = new();
     [BindProperty] public Guid EditingId { get; set; }
 
@@ -32,54 +33,91 @@ public class CalendarModel : PageModel
 
     public IActionResult OnGet()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
         SelectedDay = DateTime.Today.Day;
-        LoadCalendar(userId.Value);
+        SelectedMonth = DateTime.Today.Month;
+        SelectedYear = DateTime.Today.Year;
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostShowOverlay(int selectedDay)
+    public IActionResult OnPostShowOverlay(int selectedDay, int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
         SelectedDay = selectedDay;
         ShowOverlay = true;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostHideOverlay()
+    public IActionResult OnPostHideOverlay(int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
         ShowOverlay = false;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostAddEvent(int selectedDay)
+    public IActionResult OnPostPreviousMonth(int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
+        MoveMonth(-1);
+        SelectedDay = 1;
+        ShowOverlay = false;
+        LoadCalendar(userId);
+        return Page();
+    }
+
+    public IActionResult OnPostNextMonth(int selectedMonth, int selectedYear)
+    {
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
+        {
+            return redirect;
+        }
+
+        SyncMonthSelection(selectedMonth, selectedYear);
+        MoveMonth(1);
+        SelectedDay = 1;
+        ShowOverlay = false;
+        LoadCalendar(userId);
+        return Page();
+    }
+
+    public IActionResult OnPostAddEvent(int selectedDay, int selectedMonth, int selectedYear)
+    {
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
+        {
+            return redirect;
+        }
+
+        SyncMonthSelection(selectedMonth, selectedYear);
         SelectedDay = selectedDay;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
 
         var toCreate = new EventItem
         {
@@ -89,55 +127,57 @@ public class CalendarModel : PageModel
             Location = NewEvent.Location,
             Time = NewEvent.Time,
             Day = selectedDay,
-            Month = Month,
-            Year = Year
+            Month = SelectedMonth,
+            Year = SelectedYear
         };
 
-        var result = _logic.CreateEvent(userId.Value, toCreate);
+        var result = _logic.CreateEvent(userId, toCreate);
         if (!result.Success)
         {
             ModelState.AddModelError("NewEvent.Title", result.Error ?? "Event title is required.");
             ShowOverlay = true;
-            LoadCalendar(userId.Value);
+            LoadCalendar(userId);
             return Page();
         }
 
         ResetFormState();
         ShowOverlay = true;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostDeleteEvent(Guid id, int selectedDay)
+    public IActionResult OnPostDeleteEvent(Guid id, int selectedDay, int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
         SelectedDay = selectedDay;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
 
-        _logic.DeleteEventForUser(userId.Value, id);
+        _logic.DeleteEventForUser(userId, id);
 
         ShowOverlay = true;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostEditEvent(Guid id, int selectedDay)
+    public IActionResult OnPostEditEvent(Guid id, int selectedDay, int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
         SelectedDay = selectedDay;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
 
-        var ev = _logic.GetEvent(id, userId.Value);
+        var ev = _logic.GetEvent(id, userId);
         if (ev != null)
         {
             EditingId = id;
@@ -156,20 +196,21 @@ public class CalendarModel : PageModel
         }
 
         ShowOverlay = true;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
-    public IActionResult OnPostUpdateEvent(int selectedDay)
+    public IActionResult OnPostUpdateEvent(int selectedDay, int selectedMonth, int selectedYear)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
+        SyncMonthSelection(selectedMonth, selectedYear);
         SelectedDay = selectedDay;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
 
         var updated = new EventItem
         {
@@ -179,29 +220,35 @@ public class CalendarModel : PageModel
             Location = NewEvent.Location,
             Time = NewEvent.Time,
             Day = selectedDay,
-            Month = Month,
-            Year = Year
+            Month = SelectedMonth,
+            Year = SelectedYear
         };
 
-        var result = _logic.UpdateEventDetails(userId.Value, updated);
+        var result = _logic.UpdateEventDetails(userId, updated);
         if (!result.Success)
         {
             ModelState.AddModelError("NewEvent.Title", result.Error ?? "Unable to update event.");
             ShowOverlay = true;
-            LoadCalendar(userId.Value);
+            LoadCalendar(userId);
             return Page();
         }
 
         EditingId = Guid.Empty;
         ResetFormState();
         ShowOverlay = true;
-        LoadCalendar(userId.Value);
+        LoadCalendar(userId);
         return Page();
     }
 
     private void LoadCalendar(int userId)
     {
-        var view = _logic.BuildCalendarView(userId, SelectedDay);
+        if (SelectedMonth == 0 || SelectedYear == 0)
+        {
+            SelectedMonth = DateTime.Today.Month;
+            SelectedYear = DateTime.Today.Year;
+        }
+
+        var view = _logic.BuildCalendarView(userId, SelectedYear, SelectedMonth, SelectedDay);
 
         Year = view.Calendar.Year;
         Month = view.Calendar.Month;
@@ -216,5 +263,52 @@ public class CalendarModel : PageModel
         NewEvent = new EventItem();
         EditingId = Guid.Empty;
         ModelState.Clear();
+    }
+
+    private void MoveMonth(int delta)
+    {
+        if (SelectedMonth == 0 || SelectedYear == 0)
+        {
+            SelectedMonth = DateTime.Today.Month;
+            SelectedYear = DateTime.Today.Year;
+        }
+
+        var date = new DateTime(SelectedYear, SelectedMonth, 1).AddMonths(delta);
+        SelectedMonth = date.Month;
+        SelectedYear = date.Year;
+    }
+
+    private void SyncMonthSelection(int selectedMonth, int selectedYear)
+    {
+        if (selectedMonth >= 1 && selectedMonth <= 12)
+        {
+            SelectedMonth = selectedMonth;
+        }
+
+        if (selectedYear > 0)
+        {
+            SelectedYear = selectedYear;
+        }
+    }
+
+    private IActionResult? EnsureTeacher(out int userId)
+    {
+        var sessionUserId = HttpContext.Session.GetInt32("UserId");
+        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+
+        if (!sessionUserId.HasValue)
+        {
+            userId = 0;
+            return RedirectToPage("/Index");
+        }
+
+        if (isAdmin)
+        {
+            userId = 0;
+            return RedirectToPage("/Admin/AdminIndex");
+        }
+
+        userId = sessionUserId.Value;
+        return null;
     }
 }
