@@ -30,7 +30,8 @@ public partial class SqlDataRepository
         {
             Id = reader.GetInt32(reader.GetOrdinal("Id")),
             Username = reader.GetString(reader.GetOrdinal("Username")),
-            Password = reader.GetString(reader.GetOrdinal("Password"))
+            Password = reader.GetString(reader.GetOrdinal("Password")),
+            IsAdmin = reader.GetBoolean(reader.GetOrdinal("IsAdmin"))
         };
     }
 
@@ -86,6 +87,18 @@ public partial class SqlDataRepository
             Month = reader.GetInt32(reader.GetOrdinal("Month")),
             Year = reader.GetInt32(reader.GetOrdinal("Year")),
             UserId = reader.GetInt32(reader.GetOrdinal("UserId"))
+        };
+    }
+
+    private static Announcement MapAnnouncement(SqlDataReader reader)
+    {
+        return new Announcement
+        {
+            Id = reader.GetGuid(reader.GetOrdinal("Id")),
+            Title = reader.GetString(reader.GetOrdinal("Title")),
+            Body = GetNullableString(reader, "Body"),
+            CreatedAt = reader.GetDateTime(reader.GetOrdinal("CreatedAt")),
+            CreatedByUserId = reader.GetInt32(reader.GetOrdinal("CreatedByUserId"))
         };
     }
 

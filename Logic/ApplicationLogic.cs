@@ -10,6 +10,7 @@ public partial class ApplicationLogic : ILogicService
     private readonly Contracts.IAttendanceLogic _attendance;
     private readonly Contracts.IGradeLogic _grades;
     private readonly Contracts.IEventLogic _events;
+    private readonly Contracts.IAnnouncementLogic _announcements;
 
     public ApplicationLogic(IDataRepository repository)
     {
@@ -19,5 +20,6 @@ public partial class ApplicationLogic : ILogicService
         _attendance = new Services.AttendanceLogic(_repository);
         _grades = new Services.GradeLogic(_repository);
         _events = new Services.EventLogic(_repository);
+        _announcements = new Services.AnnouncementLogic(_repository);
     }
 }

@@ -31,9 +31,10 @@ public class Attendance : PageModel
 
     public IActionResult OnGet()
     {
-        if (!TryGetUserId(out var userId))
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
         LoadClasses(userId);
@@ -43,9 +44,10 @@ public class Attendance : PageModel
 
     public IActionResult OnPostLoad()
     {
-        if (!TryGetUserId(out var userId))
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
         LoadClasses(userId);
@@ -64,9 +66,10 @@ public class Attendance : PageModel
 
     public IActionResult OnPostSave()
     {
-        if (!TryGetUserId(out var userId))
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
         LoadClasses(userId);
@@ -113,9 +116,24 @@ public class Attendance : PageModel
         StudentAttendances = rosterResult.Value.Students;
     }
 
-    private bool TryGetUserId(out int userId)
+    private IActionResult? EnsureTeacher(out int userId)
     {
-        userId = HttpContext.Session.GetInt32("UserId") ?? 0;
-        return userId != 0;
+        var sessionUserId = HttpContext.Session.GetInt32("UserId");
+        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+
+        if (!sessionUserId.HasValue)
+        {
+            userId = 0;
+            return RedirectToPage("/Index");
+        }
+
+        if (isAdmin)
+        {
+            userId = 0;
+            return RedirectToPage("/Admin/AdminIndex");
+        }
+
+        userId = sessionUserId.Value;
+        return null;
     }
 }

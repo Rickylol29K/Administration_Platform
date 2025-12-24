@@ -41,6 +41,12 @@
                     <label asp-for="RegisterPassword">Password</label>
                     <input asp-for="RegisterPassword" type="password" />
                 </div>
+                <div class="form-field">
+                    <label>
+                        <input asp-for="RegisterIsAdmin" type="checkbox" />
+                        Register as admin
+                    </label>
+                </div>
                 <div class="auth-actions">
                     <button type="submit" class="button-secondary">Create account</button>
                 </div>

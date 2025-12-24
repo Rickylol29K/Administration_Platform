@@ -16,4 +16,5 @@ public interface IEventLogic
     OperationResult<bool> DeleteEventForUser(int userId, Guid id);
     CalendarData BuildCurrentMonth();
     CalendarView BuildCalendarView(int userId, int selectedDay);
+    CalendarView BuildCalendarView(int userId, int year, int month, int selectedDay);
 }
