@@ -32,7 +32,6 @@
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/Newtonsoft.Json.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/NuGet.Frameworks.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/System.Configuration.ConfigurationManager.dll
-/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/System.Diagnostics.EventLog.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/System.IdentityModel.Tokens.Jwt.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/System.Memory.Data.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/System.Runtime.Caching.dll
@@ -131,8 +130,6 @@
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win-arm64/native/Microsoft.Data.SqlClient.SNI.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win-x64/native/Microsoft.Data.SqlClient.SNI.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win-x86/native/Microsoft.Data.SqlClient.SNI.dll
-/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Diagnostics.EventLog.Messages.dll
-/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Diagnostics.EventLog.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/runtimes/win/lib/net8.0/System.Runtime.Caching.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/DAL.dll
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/Logic.dll
@@ -152,3 +149,14 @@
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/obj/Debug/net8.0/AdministrationPlatformTesting.pdb
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/obj/Debug/net8.0/AdministrationPlatformTesting.genruntimeconfig.cache
 /Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/obj/Debug/net8.0/ref/AdministrationPlatformTesting.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat.deps.json
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat.runtimeconfig.json
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/appsettings.Development.json
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/appsettings.json
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat.staticwebassets.runtime.json
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Abstractions.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/Microsoft.EntityFrameworkCore.Relational.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat.dll
+/Users/rickpeters/Desktop/AdministrationPlat/AdministrationPlatformTesting/bin/Debug/net8.0/AdministrationPlat.pdb
