@@ -35,25 +35,8 @@
     }
 
     <section class="add-class">
-        <h2>Create a new class</h2>
-        <form method="post">
-            <div class="form-row">
-                <label asp-for="NewClassName">Class name</label>
-                <input asp-for="NewClassName" placeholder="e.g. Algebra II" />
-            </div>
-
-            <div class="form-row">
-                <label asp-for="NewClassRoom">Room</label>
-                <input asp-for="NewClassRoom" placeholder="e.g. Room 301" />
-            </div>
-
-            <div class="form-row">
-                <label asp-for="NewClassDescription">Description</label>
-                <textarea asp-for="NewClassDescription" rows="2" placeholder="Optional notes"></textarea>
-            </div>
-
-            <button type="submit" asp-page-handler="AddClass">Add class</button>
-        </form>
+        <h2>Class management</h2>
+        <p>Classes and student rosters are managed by admins.</p>
     </section>
 
     <section class="class-list">
@@ -128,37 +111,11 @@
                                     {
                                         <span class="muted">@student.Email</span>
                                     }
-                                    <form method="post" class="inline-form">
-                                        <input type="hidden" asp-for="SelectedClassId" value="@Model.ActiveClass.Id" />
-                                        <input type="hidden" name="enrollmentId" value="@enrollment.Id" />
-                                        <button type="submit" asp-page-handler="RemoveStudent" class="link-button">Remove</button>
-                                    </form>
+                                    <span class="muted">Managed by admin</span>
                                 </li>
                             }
                         </ul>
                     }
-                </section>
-
-                <section class="add-student">
-                    <h3>Add student</h3>
-                    <form method="post">
-                        <input type="hidden" asp-for="SelectedClassId" value="@Model.ActiveClass.Id" />
-                        <div class="form-grid">
-                            <div>
-                                <label asp-for="NewStudentFirstName">First name</label>
-                                <input asp-for="NewStudentFirstName" />
-                            </div>
-                            <div>
-                                <label asp-for="NewStudentLastName">Last name</label>
-                                <input asp-for="NewStudentLastName" />
-                            </div>
-                            <div class="wide">
-                                <label asp-for="NewStudentEmail">Email</label>
-                                <input asp-for="NewStudentEmail" type="email" />
-                            </div>
-                        </div>
-                        <button type="submit" asp-page-handler="AddStudent">Add student</button>
-                    </form>
                 </section>
 
                 <form method="post">

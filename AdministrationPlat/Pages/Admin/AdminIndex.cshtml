@@ -5,17 +5,199 @@
     Layout = "Shared/AdminLayout";
 }
 
-<!DOCTYPE html>
+<link rel="stylesheet" href="~/css/Admin/stylesAdminIndex.css">
 
-<html>
-<head>
-    <title>Index</title>
+<div class="admin-dashboard">
+    <h1>Admin Dashboard</h1>
 
-    <link rel="stylesheet" href="~/css/Admin/stylesAdminIndex.css">
-</head>
-<body>
-<div>
-    <h1 id="text">Admin Index</h1>
+    @if (TempData["AdminMessage"] is string adminMessage)
+    {
+        <div class="status-message">@adminMessage</div>
+    }
+
+    @if (!ViewData.ModelState.IsValid)
+    {
+        var validationMessages = ViewData.ModelState.Values
+            .SelectMany(v => v.Errors)
+            .Select(e => e.ErrorMessage)
+            .Where(message => !string.IsNullOrWhiteSpace(message))
+            .ToList();
+
+        if (validationMessages.Count > 0)
+        {
+            <div class="validation-summary">
+                @foreach (var errorMessage in validationMessages)
+                {
+                    <p>@errorMessage</p>
+                }
+            </div>
+        }
+    }
+
+    <section class="admin-section">
+        <h2>Create teacher account</h2>
+        <form method="post">
+            <div class="form-row">
+                <label asp-for="NewTeacherUsername">Username</label>
+                <input asp-for="NewTeacherUsername" />
+            </div>
+            <div class="form-row">
+                <label asp-for="NewTeacherPassword">Password</label>
+                <input asp-for="NewTeacherPassword" type="password" />
+            </div>
+            <button type="submit" asp-page-handler="CreateTeacher">Create teacher</button>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <h2>Create class</h2>
+        <form method="post">
+            <div class="form-row">
+                <label asp-for="SelectedTeacherId">Teacher</label>
+                <select asp-for="SelectedTeacherId">
+                    <option value="">Select a teacher</option>
+                    @foreach (var teacher in Model.Teachers)
+                    {
+                        <option value="@teacher.Id">@teacher.Username</option>
+                    }
+                </select>
+            </div>
+            <div class="form-row">
+                <label asp-for="NewClassName">Class name</label>
+                <input asp-for="NewClassName" placeholder="e.g. Algebra II" />
+            </div>
+            <div class="form-row">
+                <label asp-for="NewClassRoom">Room</label>
+                <input asp-for="NewClassRoom" placeholder="e.g. Room 301" />
+            </div>
+            <div class="form-row">
+                <label asp-for="NewClassDescription">Description</label>
+                <textarea asp-for="NewClassDescription" rows="2" placeholder="Optional notes"></textarea>
+            </div>
+            <button type="submit" asp-page-handler="CreateClass">Create class</button>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <h2>Add student to class</h2>
+        <form method="post">
+            <div class="form-row">
+                <label asp-for="SelectedClassId">Class</label>
+                <select asp-for="SelectedClassId">
+                    <option value="">Select a class</option>
+                    @foreach (var schoolClass in Model.Classes)
+                    {
+                        var teacherName = Model.TeacherLookup.TryGetValue(schoolClass.TeacherId, out var name) ? name : "Unknown";
+                        <option value="@schoolClass.Id">@schoolClass.Name (@teacherName)</option>
+                    }
+                </select>
+            </div>
+            <div class="form-grid">
+                <div>
+                    <label asp-for="NewStudentFirstName">First name</label>
+                    <input asp-for="NewStudentFirstName" />
+                </div>
+                <div>
+                    <label asp-for="NewStudentLastName">Last name</label>
+                    <input asp-for="NewStudentLastName" />
+                </div>
+                <div class="wide">
+                    <label asp-for="NewStudentEmail">Email</label>
+                    <input asp-for="NewStudentEmail" type="email" />
+                </div>
+            </div>
+            <button type="submit" asp-page-handler="AddStudent">Add student</button>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <h2>Publish announcement</h2>
+        <form method="post">
+            <div class="form-row">
+                <label asp-for="AnnouncementTitle">Title</label>
+                <input asp-for="AnnouncementTitle" />
+            </div>
+            <div class="form-row">
+                <label asp-for="AnnouncementBody">Message</label>
+                <textarea asp-for="AnnouncementBody" rows="3" placeholder="Share updates with teachers"></textarea>
+            </div>
+            <button type="submit" asp-page-handler="AddAnnouncement">Publish</button>
+        </form>
+    </section>
+
+    <section class="admin-section">
+        <h2>Teacher roster</h2>
+        @if (Model.Teachers.Count == 0)
+        {
+            <p>No teachers have been created yet.</p>
+        }
+        else
+        {
+            <ul class="admin-list">
+                @foreach (var teacher in Model.Teachers)
+                {
+                    var classCount = Model.Classes.Count(c => c.TeacherId == teacher.Id);
+                    <li>
+                        <strong>@teacher.Username</strong>
+                        <span class="muted">@classCount class@{ if (classCount != 1) { <text>es</text>; } }</span>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="admin-section">
+        <h2>Classes</h2>
+        @if (Model.Classes.Count == 0)
+        {
+            <p>No classes have been created yet.</p>
+        }
+        else
+        {
+            <ul class="admin-list">
+                @foreach (var schoolClass in Model.Classes)
+                {
+                    var teacherName = Model.TeacherLookup.TryGetValue(schoolClass.TeacherId, out var name) ? name : "Unknown";
+                    <li>
+                        <strong>@schoolClass.Name</strong>
+                        <span class="muted">@teacherName</span>
+                        @if (!string.IsNullOrWhiteSpace(schoolClass.Room))
+                        {
+                            <span class="muted">Room @schoolClass.Room</span>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="admin-section">
+        <h2>Announcements</h2>
+        @if (Model.Announcements.Count == 0)
+        {
+            <p>No announcements posted yet.</p>
+        }
+        else
+        {
+            <ul class="admin-list">
+                @foreach (var announcement in Model.Announcements)
+                {
+                    <li class="announcement-item">
+                        <div>
+                            <strong>@announcement.Title</strong>
+                            <span class="muted">@announcement.CreatedAt.ToLocalTime().ToString("MMM dd")</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(announcement.Body))
+                        {
+                            <p>@announcement.Body</p>
+                        }
+                        <form method="post" class="inline-form">
+                            <input type="hidden" name="announcementId" value="@announcement.Id" />
+                            <button type="submit" asp-page-handler="DeleteAnnouncement" class="link-button">Delete</button>
+                        </form>
+                    </li>
+                }
+            </ul>
+        }
+    </section>
 </div>
-</body>
-</html>

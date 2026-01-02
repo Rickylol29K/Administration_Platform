@@ -26,6 +26,32 @@
     </section>
 
     <section class="dashboard-section">
+        <h2>Announcements</h2>
+        @if (Model.Announcements.Count == 0)
+        {
+            <p>No announcements yet.</p>
+        }
+        else
+        {
+            <ul class="announcement-list">
+                @foreach (var announcement in Model.Announcements)
+                {
+                    <li>
+                        <div>
+                            <strong>@announcement.Title</strong>
+                            <span class="muted">@announcement.CreatedAt.ToLocalTime().ToString("MMM dd")</span>
+                        </div>
+                        @if (!string.IsNullOrWhiteSpace(announcement.Body))
+                        {
+                            <p>@announcement.Body</p>
+                        }
+                    </li>
+                }
+            </ul>
+        }
+    </section>
+
+    <section class="dashboard-section">
         <h2>Upcoming events</h2>
         @if (Model.UpcomingEvents.Count == 0)
         {
@@ -42,6 +68,10 @@
                             <strong>@item.Title</strong>
                             <span class="muted">@eventDate.ToString("MMM dd") @item.Time</span>
                         </div>
+                        <form method="post" class="inline-form">
+                            <input type="hidden" name="id" value="@item.Id" />
+                            <button type="submit" asp-page-handler="DeleteEvent" class="tiny-delete">Delete</button>
+                        </form>
                         @if (!string.IsNullOrWhiteSpace(item.Location))
                         {
                             <span class="muted">@item.Location</span>

@@ -13,6 +13,7 @@ public interface IClassLogic
     OperationResult<SchoolClass> CreateClass(int teacherId, string name, string? room, string? description);
     OperationResult<ClassOverlay> LoadClassOverlay(int classId, int? teacherId = null);
     ClassMembershipResult AddStudentToClass(int teacherId, int classId, string firstName, string lastName, string? email);
+    ClassMembershipResult AddStudentToClassAsAdmin(int classId, string firstName, string lastName, string? email);
     ClassMembershipResult RemoveStudentFromClass(int teacherId, int enrollmentId);
 
     Student? GetStudentByEmail(string email);

@@ -23,6 +23,9 @@ public partial class ApplicationLogic
     public ClassMembershipResult AddStudentToClass(int teacherId, int classId, string firstName, string lastName, string? email) =>
         _classes.AddStudentToClass(teacherId, classId, firstName, lastName, email);
 
+    public ClassMembershipResult AddStudentToClassAsAdmin(int classId, string firstName, string lastName, string? email) =>
+        _classes.AddStudentToClassAsAdmin(classId, firstName, lastName, email);
+
     public ClassMembershipResult RemoveStudentFromClass(int teacherId, int enrollmentId) =>
         _classes.RemoveStudentFromClass(teacherId, enrollmentId);
 }

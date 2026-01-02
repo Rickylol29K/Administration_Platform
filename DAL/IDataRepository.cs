@@ -5,8 +5,10 @@ namespace DAL;
 public interface IDataRepository
 {
     User? GetUser(string username, string password);
+    User? GetUserById(int id);
     bool UsernameExists(string username);
-    User CreateUser(string username, string password);
+    User CreateUser(string username, string password, bool isAdmin);
+    List<User> GetTeachers();
 
     List<SchoolClass> GetClassesForTeacher(int teacherId);
     List<SchoolClass> GetAllClasses();
@@ -38,4 +40,10 @@ public interface IDataRepository
     void AddEvent(EventItem item);
     void UpdateEvent(EventItem item);
     void DeleteEvent(Guid id, int userId);
+
+    List<Announcement> GetAnnouncements(int take);
+    List<Announcement> GetAllAnnouncements();
+    Announcement? GetAnnouncement(Guid id);
+    Announcement AddAnnouncement(Announcement announcement);
+    void DeleteAnnouncement(Guid id);
 }

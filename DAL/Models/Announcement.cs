@@ -11,8 +11,11 @@ public class Announcement
     [MaxLength(120)]
     public string Title { get; set; } = string.Empty;
 
-    [MaxLength(2000)]
+<<<<<<< HEAD
+    [MaxLength(1200)]
     public string? Body { get; set; }
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
+
+    public int CreatedByUserId { get; set; }
 }

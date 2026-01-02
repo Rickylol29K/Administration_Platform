@@ -45,66 +45,40 @@ public class Classes : PageModel
 
     public IActionResult OnGet()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
-        LoadTeacherClasses(userId.Value);
+        LoadTeacherClasses(userId);
         return Page();
     }
 
     public IActionResult OnPostAddClass()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
-        LoadTeacherClasses(userId.Value);
-
-        if (string.IsNullOrWhiteSpace(NewClassName))
-        {
-            ModelState.AddModelError(nameof(NewClassName), "Class name is required.");
-            return Page();
-        }
-
-        var result = _logic.CreateClass(
-            userId.Value,
-            NewClassName,
-            NewClassRoom,
-            NewClassDescription);
-
-        if (!result.Success || result.Value == null)
-        {
-            ModelState.AddModelError(nameof(NewClassName), result.Error ?? "Unable to create class.");
-            return Page();
-        }
-
-        TempData["ClassMessage"] = $"Class \"{result.Value.Name}\" created.";
-
-        ModelState.Clear();
-        NewClassName = string.Empty;
-        NewClassRoom = null;
-        NewClassDescription = null;
-
-        LoadTeacherClasses(userId.Value);
+        LoadTeacherClasses(userId);
+        ModelState.AddModelError(string.Empty, "Only admins can create classes.");
         return Page();
     }
 
     public IActionResult OnPostShowOverlay(int classId)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
         SelectedClassId = classId;
-        LoadTeacherClasses(userId.Value);
-        var overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId.Value);
+        LoadTeacherClasses(userId);
+        var overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId);
         if (!overlayResult.Success || overlayResult.Value?.ActiveClass == null)
         {
             ModelState.AddModelError(string.Empty, overlayResult.Error ?? "Unable to load the requested class.");
@@ -121,86 +95,42 @@ public class Classes : PageModel
 
     public IActionResult OnPostAddStudent()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
-        LoadTeacherClasses(userId.Value);
-        var result = _logic.AddStudentToClass(
-            userId.Value,
-            SelectedClassId,
-            NewStudentFirstName,
-            NewStudentLastName,
-            NewStudentEmail);
-
-        if (!result.Success)
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-            ShowOverlay = true;
-            LoadTeacherClasses(userId.Value);
-            if (result.Overlay.ActiveClass != null)
-            {
-                ActiveClass = result.Overlay.ActiveClass;
-                ActiveEnrollments = result.Overlay.Enrollments;
-            }
-            return Page();
-        }
-
-        TempData["ClassMessage"] = result.Message;
-
-        ModelState.Clear();
-        NewStudentFirstName = string.Empty;
-        NewStudentLastName = string.Empty;
-        NewStudentEmail = null;
-
-        LoadOverlay(userId.Value, SelectedClassId);
+        LoadTeacherClasses(userId);
+        ModelState.AddModelError(string.Empty, "Only admins can add students.");
+        LoadOverlay(userId, SelectedClassId);
         ShowOverlay = true;
         return Page();
     }
 
     public IActionResult OnPostRemoveStudent(int enrollmentId)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
-        LoadTeacherClasses(userId.Value);
-
-        var result = _logic.RemoveStudentFromClass(userId.Value, enrollmentId);
-
-        if (result.Success)
-        {
-            TempData["ClassMessage"] = result.Message;
-            SelectedClassId = result.Overlay.ActiveClass?.Id ?? SelectedClassId;
-        }
-        else
-        {
-            ModelState.AddModelError(string.Empty, result.Message);
-        }
-
-        if (result.Overlay.ActiveClass != null)
-        {
-            ActiveClass = result.Overlay.ActiveClass;
-            ActiveEnrollments = result.Overlay.Enrollments;
-        }
-
+        LoadTeacherClasses(userId);
+        ModelState.AddModelError(string.Empty, "Only admins can remove students.");
         ShowOverlay = true;
         return Page();
     }
 
     public IActionResult OnPostHideOverlay()
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        if (userId == null)
+        var redirect = EnsureTeacher(out var userId);
+        if (redirect != null)
         {
-            return RedirectToPage("/Index");
+            return redirect;
         }
 
-        LoadTeacherClasses(userId.Value);
+        LoadTeacherClasses(userId);
         ShowOverlay = false;
         return Page();
     }
@@ -208,11 +138,6 @@ public class Classes : PageModel
     private void LoadTeacherClasses(int userId)
     {
         TeacherClasses = _logic.GetClassesForTeacher(userId);
-    }
-
-    private void LoadActiveClass(int userId)
-    {
-        LoadOverlay(userId, SelectedClassId);
     }
 
     private void LoadOverlay(int userId, int classId)
@@ -223,5 +148,26 @@ public class Classes : PageModel
             ActiveClass = overlay.Value.ActiveClass;
             ActiveEnrollments = overlay.Value.Enrollments;
         }
+    }
+
+    private IActionResult? EnsureTeacher(out int userId)
+    {
+        var sessionUserId = HttpContext.Session.GetInt32("UserId");
+        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+
+        if (!sessionUserId.HasValue)
+        {
+            userId = 0;
+            return RedirectToPage("/Index");
+        }
+
+        if (isAdmin)
+        {
+            userId = 0;
+            return RedirectToPage("/Admin/AdminIndex");
+        }
+
+        userId = sessionUserId.Value;
+        return null;
     }
 }

@@ -9,6 +9,27 @@
 .calendar-header {
     text-align: center;
     margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+
+.calendar-header h2 {
+    margin: 0;
+    flex: 0 1 auto;
+}
+
+.month-nav {
+    margin: 0;
+    display: flex;
+}
+
+.month-btn {
+    background-color: #e0e0e0;
+    border: 1px solid #c5c5c5;
+    color: #222222;
+    padding: 6px 10px;
 }
 
 .calendar-weekdays,

@@ -17,6 +17,7 @@ public class ApplicationDbContext : DbContext
     public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
     public DbSet<GradeRecord> GradeRecords => Set<GradeRecord>();
     public DbSet<EventItem> TeacherEvents => Set<EventItem>();
+    public DbSet<Announcement> Announcements => Set<Announcement>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -26,6 +27,10 @@ public class ApplicationDbContext : DbContext
             .ToTable("Users")
             .HasIndex(u => u.Username)
             .IsUnique();
+
+        modelBuilder.Entity<User>()
+            .Property(u => u.IsAdmin)
+            .HasDefaultValue(false);
 
         modelBuilder.Entity<SchoolClass>()
             .ToTable("Classes")
@@ -48,6 +53,9 @@ public class ApplicationDbContext : DbContext
 
         modelBuilder.Entity<EventItem>()
             .ToTable("TeacherEvents");
+
+        modelBuilder.Entity<Announcement>()
+            .ToTable("Announcements");
 
         modelBuilder.Entity<ClassEnrollment>()
             .HasIndex(e => new { e.StudentId, e.SchoolClassId })

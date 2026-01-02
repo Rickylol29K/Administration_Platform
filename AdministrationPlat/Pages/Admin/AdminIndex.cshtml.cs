@@ -1,11 +1,243 @@
+using AdministrationPlat.Models;
+using Logic;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 
 namespace AdministrationPlat.Pages.Admin;
 
 public class AdminIndex : PageModel
 {
-    public void OnGet()
+    private readonly ILogicService _logic;
+
+    public AdminIndex(ILogicService logic)
     {
-        
+        _logic = logic;
+    }
+
+    public List<User> Teachers { get; private set; } = new();
+    public List<SchoolClass> Classes { get; private set; } = new();
+    public List<Announcement> Announcements { get; private set; } = new();
+
+    public IReadOnlyDictionary<int, string> TeacherLookup { get; private set; } = new Dictionary<int, string>();
+
+    [BindProperty]
+    public string NewTeacherUsername { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string NewTeacherPassword { get; set; } = string.Empty;
+
+    [BindProperty]
+    public int SelectedTeacherId { get; set; }
+
+    [BindProperty]
+    public string NewClassName { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string? NewClassRoom { get; set; }
+
+    [BindProperty]
+    public string? NewClassDescription { get; set; }
+
+    [BindProperty]
+    public int SelectedClassId { get; set; }
+
+    [BindProperty]
+    public string NewStudentFirstName { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string NewStudentLastName { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string? NewStudentEmail { get; set; }
+
+    [BindProperty]
+    public string AnnouncementTitle { get; set; } = string.Empty;
+
+    [BindProperty]
+    public string? AnnouncementBody { get; set; }
+
+    public IActionResult OnGet()
+    {
+        if (!TryGetAdminUserId(out _))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        LoadAdminData();
+        return Page();
+    }
+
+    public IActionResult OnPostCreateTeacher()
+    {
+        if (!TryGetAdminUserId(out _))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        var result = _logic.Register(NewTeacherUsername, NewTeacherPassword, false);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Error ?? "Unable to create teacher account.");
+            LoadAdminData();
+            return Page();
+        }
+
+        TempData["AdminMessage"] = $"Teacher account \"{result.Value?.Username}\" created.";
+
+        ModelState.Clear();
+        NewTeacherUsername = string.Empty;
+        NewTeacherPassword = string.Empty;
+
+        LoadAdminData();
+        return Page();
+    }
+
+    public IActionResult OnPostCreateClass()
+    {
+        if (!TryGetAdminUserId(out _))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        if (SelectedTeacherId <= 0)
+        {
+            ModelState.AddModelError(nameof(SelectedTeacherId), "Select a teacher for this class.");
+            LoadAdminData();
+            return Page();
+        }
+
+        var teacher = _logic.GetUserById(SelectedTeacherId);
+        if (teacher == null || teacher.IsAdmin)
+        {
+            ModelState.AddModelError(nameof(SelectedTeacherId), "Selected teacher is not valid.");
+            LoadAdminData();
+            return Page();
+        }
+
+        var result = _logic.CreateClass(SelectedTeacherId, NewClassName, NewClassRoom, NewClassDescription);
+        if (!result.Success || result.Value == null)
+        {
+            ModelState.AddModelError(nameof(NewClassName), result.Error ?? "Unable to create class.");
+            LoadAdminData();
+            return Page();
+        }
+
+        TempData["AdminMessage"] = $"Class \"{result.Value.Name}\" created for {teacher.Username}.";
+
+        ModelState.Clear();
+        NewClassName = string.Empty;
+        NewClassRoom = null;
+        NewClassDescription = null;
+
+        LoadAdminData();
+        return Page();
+    }
+
+    public IActionResult OnPostAddStudent()
+    {
+        if (!TryGetAdminUserId(out _))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        if (SelectedClassId <= 0)
+        {
+            ModelState.AddModelError(nameof(SelectedClassId), "Select a class for the student.");
+            LoadAdminData();
+            return Page();
+        }
+
+        var result = _logic.AddStudentToClassAsAdmin(
+            SelectedClassId,
+            NewStudentFirstName,
+            NewStudentLastName,
+            NewStudentEmail);
+
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Message);
+            LoadAdminData();
+            return Page();
+        }
+
+        TempData["AdminMessage"] = result.Message;
+
+        ModelState.Clear();
+        NewStudentFirstName = string.Empty;
+        NewStudentLastName = string.Empty;
+        NewStudentEmail = null;
+
+        LoadAdminData();
+        return Page();
+    }
+
+    public IActionResult OnPostAddAnnouncement()
+    {
+        if (!TryGetAdminUserId(out var adminId))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        var result = _logic.CreateAnnouncement(adminId, AnnouncementTitle, AnnouncementBody);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(nameof(AnnouncementTitle), result.Error ?? "Unable to create announcement.");
+            LoadAdminData();
+            return Page();
+        }
+
+        TempData["AdminMessage"] = "Announcement published.";
+
+        ModelState.Clear();
+        AnnouncementTitle = string.Empty;
+        AnnouncementBody = null;
+
+        LoadAdminData();
+        return Page();
+    }
+
+    public IActionResult OnPostDeleteAnnouncement(Guid announcementId)
+    {
+        if (!TryGetAdminUserId(out _))
+        {
+            return RedirectToPage("/Index");
+        }
+
+        var result = _logic.DeleteAnnouncement(announcementId);
+        if (!result.Success)
+        {
+            ModelState.AddModelError(string.Empty, result.Error ?? "Unable to remove announcement.");
+            LoadAdminData();
+            return Page();
+        }
+
+        TempData["AdminMessage"] = "Announcement removed.";
+
+        LoadAdminData();
+        return Page();
+    }
+
+    private bool TryGetAdminUserId(out int adminId)
+    {
+        var userId = HttpContext.Session.GetInt32("UserId");
+        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+
+        if (!userId.HasValue || !isAdmin)
+        {
+            adminId = 0;
+            return false;
+        }
+
+        adminId = userId.Value;
+        return true;
+    }
+
+    private void LoadAdminData()
+    {
+        Teachers = _logic.GetTeachers();
+        Classes = _logic.GetAllClasses();
+        Announcements = _logic.GetAllAnnouncements();
+        TeacherLookup = Teachers.ToDictionary(t => t.Id, t => t.Username);
     }
 }
