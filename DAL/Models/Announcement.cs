@@ -11,7 +11,6 @@ public class Announcement
     [MaxLength(120)]
     public string Title { get; set; } = string.Empty;
 
-<<<<<<< HEAD
     [MaxLength(1200)]
     public string? Body { get; set; }
 
