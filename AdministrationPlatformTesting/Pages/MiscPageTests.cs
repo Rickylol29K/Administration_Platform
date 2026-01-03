@@ -1,7 +1,5 @@
 using AdministrationPlat.Pages;
-using AdministrationPlat.Pages.Admin;
 using AdministrationPlatformTesting.Infrastructure;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
@@ -31,14 +29,6 @@ public class MiscPageTests
     {
         var logger = new NullLogger<PrivacyModel>();
         var page = new PrivacyModel(logger);
-
-        page.OnGet();
-    }
-
-    [TestMethod]
-    public void AdminIndex_OnGet_DoesNotThrow()
-    {
-        var page = new AdminIndex();
 
         page.OnGet();
     }

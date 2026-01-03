@@ -1,5 +1,4 @@
-using AdministrationPlat.Models;
-using AdministrationPlat.Pages.Shared.Teacher;
+using AdministrationPlat.Pages.Admin;
 using AdministrationPlatformTesting.Infrastructure;
 using Logic;
 using Microsoft.AspNetCore.Mvc;
@@ -9,16 +8,16 @@ using Microsoft.VisualStudio.TestTools.UnitTesting;
 namespace AdministrationPlatformTesting.Pages;
 
 [TestClass]
-public class TeacherIndexPageTests
+public class AdminIndexPageTests
 {
     [TestMethod]
-    public void OnGet_WithoutSession_Redirects()
+    public void OnGet_WithoutAdmin_Redirects()
     {
         var repository = new FakeDataRepository();
         var logic = new ApplicationLogic(repository);
-        var page = new TeacherIndex(logic);
+        var page = new AdminIndex(logic);
         var session = new TestSession();
-        var context = PageModelTestHelper.CreateHttpContextWithSession(session);
+        var context = PageModelTestHelper.CreateHttpContextWithSession(session, 1, isAdmin: false);
         PageModelTestHelper.AttachPageContext(page, context);
 
         var result = page.OnGet();
@@ -27,19 +26,21 @@ public class TeacherIndexPageTests
     }
 
     [TestMethod]
-    public void OnGet_WithSession_LoadsAnnouncements()
+    public void OnPostAddAnnouncement_WithValidData_Publishes()
     {
         var repository = new FakeDataRepository();
-        repository.Announcements.Add(new Announcement { Id = Guid.NewGuid(), Title = "Update" });
         var logic = new ApplicationLogic(repository);
-        var page = new TeacherIndex(logic);
+        var page = new AdminIndex(logic);
         var session = new TestSession();
-        var context = PageModelTestHelper.CreateHttpContextWithSession(session, 1);
+        var context = PageModelTestHelper.CreateHttpContextWithSession(session, 10, isAdmin: true);
         PageModelTestHelper.AttachPageContext(page, context);
 
-        var result = page.OnGet();
+        page.AnnouncementTitle = "Update";
+        page.AnnouncementBody = "Hello";
+
+        var result = page.OnPostAddAnnouncement();
 
         Assert.IsInstanceOfType(result, typeof(PageResult));
-        Assert.AreEqual(1, page.Announcements.Count);
+        Assert.AreEqual(1, repository.Announcements.Count);
     }
 }

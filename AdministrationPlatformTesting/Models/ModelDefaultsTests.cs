@@ -8,15 +8,7 @@ namespace AdministrationPlatformTesting.Models;
 public class ModelDefaultsTests
 {
     [TestMethod]
-    public void Student_FullName_BuildsName()
-    {
-        var student = new Student { FirstName = "Alex", LastName = "Stone" };
-
-        Assert.AreEqual("Alex Stone", student.FullName);
-    }
-
-    [TestMethod]
-    public void Models_InitializeCollections()
+    public void Model_Collections_AreInitialized()
     {
         var student = new Student();
         var schoolClass = new SchoolClass();

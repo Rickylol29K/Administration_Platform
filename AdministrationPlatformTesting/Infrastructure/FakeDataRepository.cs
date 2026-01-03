@@ -19,6 +19,7 @@ internal sealed class FakeDataRepository : IDataRepository
     public List<AttendanceRecord> AttendanceRecords { get; } = new();
     public List<GradeRecord> GradeRecords { get; } = new();
     public List<EventItem> Events { get; } = new();
+    public List<Announcement> Announcements { get; } = new();
 
     public User? GetUser(string username, string password) =>
         Users.FirstOrDefault(u => u.Username == username && u.Password == password);
@@ -28,19 +29,20 @@ internal sealed class FakeDataRepository : IDataRepository
     public bool UsernameExists(string username) =>
         Users.Any(u => string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase));
 
-    public User CreateUser(string username, string password)
+    public User CreateUser(string username, string password, bool isAdmin)
     {
         var user = new User
         {
             Id = _nextUserId++,
             Username = username,
-            Password = password
+            Password = password,
+            IsAdmin = isAdmin
         };
         Users.Add(user);
         return user;
     }
 
-    public List<User> GetTeachers() => Users.ToList();
+    public List<User> GetTeachers() => Users.Where(u => !u.IsAdmin).ToList();
 
     public List<SchoolClass> GetClassesForTeacher(int teacherId) =>
         Classes.Where(c => c.TeacherId == teacherId).ToList();
@@ -160,7 +162,7 @@ internal sealed class FakeDataRepository : IDataRepository
             .Where(r => r.SchoolClassId == classId && r.Date.Date == date.Date)
             .ToList();
 
-        foreach (var record in existing)
+        foreach (var record in existing.ToList())
         {
             var match = items.FirstOrDefault(r => r.StudentId == record.StudentId);
             if (match.StudentId == 0 && items.All(r => r.StudentId != record.StudentId))
@@ -317,16 +319,26 @@ internal sealed class FakeDataRepository : IDataRepository
         Events.RemoveAll(e => e.Id == id && e.UserId == userId);
     }
 
-    public List<Announcement> GetAnnouncements(int take) => new();
+    public List<Announcement> GetAnnouncements(int take) =>
+        Announcements
+            .OrderByDescending(a => a.CreatedAt)
+            .Take(take)
+            .ToList();
 
-    public List<Announcement> GetAllAnnouncements() => new();
+    public List<Announcement> GetAllAnnouncements() =>
+        Announcements.OrderByDescending(a => a.CreatedAt).ToList();
 
-    public Announcement? GetAnnouncement(Guid id) => null;
+    public Announcement? GetAnnouncement(Guid id) => Announcements.FirstOrDefault(a => a.Id == id);
 
-    public Announcement AddAnnouncement(Announcement announcement) => announcement;
+    public Announcement AddAnnouncement(Announcement announcement)
+    {
+        Announcements.Add(announcement);
+        return announcement;
+    }
 
     public void DeleteAnnouncement(Guid id)
     {
+        Announcements.RemoveAll(a => a.Id == id);
     }
 
     private static DateTime? SafeBuildDate(EventItem e)
