@@ -65,9 +65,29 @@ public partial class SqlDataRepository
             }
         }
 
+        var validStudentIds = new HashSet<int>();
+        using (var selectStudents = new SqlCommand(
+                   @"SELECT e.StudentId
+                     FROM Enrollments e
+                     INNER JOIN Students s ON e.StudentId = s.Id
+                     WHERE e.SchoolClassId = @classId", connection, transaction))
+        {
+            selectStudents.Parameters.AddWithValue("@classId", classId);
+            using var reader = selectStudents.ExecuteReader();
+            while (reader.Read())
+            {
+                validStudentIds.Add(reader.GetInt32(reader.GetOrdinal("StudentId")));
+            }
+        }
+
         var incomingLookup = new Dictionary<int, (decimal? Score, string? Comment)>();
         foreach (var record in newRecords)
         {
+            if (record.StudentId <= 0 || !validStudentIds.Contains(record.StudentId))
+            {
+                continue;
+            }
+
             incomingLookup[record.StudentId] = (record.Score, record.Comment);
         }
 
@@ -97,6 +117,11 @@ public partial class SqlDataRepository
 
         foreach (var incoming in newRecords)
         {
+            if (incoming.StudentId <= 0 || !validStudentIds.Contains(incoming.StudentId))
+            {
+                continue;
+            }
+
             if (existing.ContainsKey(incoming.StudentId) || !incoming.Score.HasValue)
             {
                 continue;
