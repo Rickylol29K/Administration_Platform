@@ -21,13 +21,20 @@ internal sealed class FakeDataRepository : IDataRepository
     public List<EventItem> Events { get; } = new();
     public List<Announcement> Announcements { get; } = new();
 
-    public User? GetUser(string username, string password) =>
-        Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+    public User? GetUser(string username, string password)
+    {
+        return Users.FirstOrDefault(u => u.Username == username && u.Password == password);
+    }
 
-    public User? GetUserById(int id) => Users.FirstOrDefault(u => u.Id == id);
+    public User? GetUserById(int id)
+    {
+        return Users.FirstOrDefault(u => u.Id == id);
+    }
 
-    public bool UsernameExists(string username) =>
-        Users.Any(u => string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase));
+    public bool UsernameExists(string username)
+    {
+        return Users.Any(u => string.Equals(u.Username, username, StringComparison.OrdinalIgnoreCase));
+    }
 
     public User CreateUser(string username, string password, bool isAdmin)
     {
@@ -42,12 +49,20 @@ internal sealed class FakeDataRepository : IDataRepository
         return user;
     }
 
-    public List<User> GetTeachers() => Users.Where(u => !u.IsAdmin).ToList();
+    public List<User> GetTeachers()
+    {
+        return Users.Where(u => !u.IsAdmin).ToList();
+    }
 
-    public List<SchoolClass> GetClassesForTeacher(int teacherId) =>
-        Classes.Where(c => c.TeacherId == teacherId).ToList();
+    public List<SchoolClass> GetClassesForTeacher(int teacherId)
+    {
+        return Classes.Where(c => c.TeacherId == teacherId).ToList();
+    }
 
-    public List<SchoolClass> GetAllClasses() => Classes.ToList();
+    public List<SchoolClass> GetAllClasses()
+    {
+        return Classes.ToList();
+    }
 
     public SchoolClass AddClass(SchoolClass schoolClass)
     {
@@ -88,10 +103,16 @@ internal sealed class FakeDataRepository : IDataRepository
         };
     }
 
-    public string? GetClassName(int classId) => Classes.FirstOrDefault(c => c.Id == classId)?.Name;
+    public string? GetClassName(int classId)
+    {
+        SchoolClass? cls = Classes.FirstOrDefault(c => c.Id == classId);
+        return cls == null ? null : cls.Name;
+    }
 
-    public Student? GetStudentByEmail(string email) =>
-        Students.FirstOrDefault(s => string.Equals(s.Email, email, StringComparison.OrdinalIgnoreCase));
+    public Student? GetStudentByEmail(string email)
+    {
+        return Students.FirstOrDefault(s => string.Equals(s.Email, email, StringComparison.OrdinalIgnoreCase));
+    }
 
     public Student AddStudent(Student student)
     {
@@ -100,8 +121,10 @@ internal sealed class FakeDataRepository : IDataRepository
         return student;
     }
 
-    public bool EnrollmentExists(int studentId, int classId) =>
-        Enrollments.Any(e => e.StudentId == studentId && e.SchoolClassId == classId);
+    public bool EnrollmentExists(int studentId, int classId)
+    {
+        return Enrollments.Any(e => e.StudentId == studentId && e.SchoolClassId == classId);
+    }
 
     public void AddEnrollment(int studentId, int classId)
     {
@@ -152,8 +175,10 @@ internal sealed class FakeDataRepository : IDataRepository
         return Students.Where(s => studentIds.Contains(s.Id)).ToList();
     }
 
-    public List<AttendanceRecord> GetAttendanceRecords(int classId, DateTime date) =>
-        AttendanceRecords.Where(r => r.SchoolClassId == classId && r.Date.Date == date.Date).ToList();
+    public List<AttendanceRecord> GetAttendanceRecords(int classId, DateTime date)
+    {
+        return AttendanceRecords.Where(r => r.SchoolClassId == classId && r.Date.Date == date.Date).ToList();
+    }
 
     public void SaveAttendanceRecords(int classId, DateTime date, IEnumerable<(int StudentId, bool IsPresent)> records)
     {
@@ -192,10 +217,12 @@ internal sealed class FakeDataRepository : IDataRepository
         }
     }
 
-    public List<GradeRecord> GetGradeRecords(int classId, string assessment, DateTime date) =>
-        GradeRecords
+    public List<GradeRecord> GetGradeRecords(int classId, string assessment, DateTime date)
+    {
+        return GradeRecords
             .Where(r => r.SchoolClassId == classId && r.Assessment == assessment && r.DateRecorded.Date == date.Date)
             .ToList();
+    }
 
     public void SaveGradeRecords(int classId, string assessment, DateTime date, decimal? maxScore, IEnumerable<(int StudentId, decimal? Score, string? Comment)> records)
     {
@@ -257,7 +284,10 @@ internal sealed class FakeDataRepository : IDataRepository
             .ToList();
     }
 
-    public int GetClassCount(int teacherId) => Classes.Count(c => c.TeacherId == teacherId);
+    public int GetClassCount(int teacherId)
+    {
+        return Classes.Count(c => c.TeacherId == teacherId);
+    }
 
     public int GetDistinctStudentCount(int teacherId)
     {
@@ -285,17 +315,24 @@ internal sealed class FakeDataRepository : IDataRepository
         return eventsWithDates;
     }
 
-    public List<EventItem> GetEventsForMonth(int userId, int year, int month) =>
-        Events
+    public List<EventItem> GetEventsForMonth(int userId, int year, int month)
+    {
+        return Events
             .Where(e => e.UserId == userId && e.Year == year && e.Month == month)
             .OrderBy(e => e.Day)
             .ThenBy(e => e.Time, StringComparer.Ordinal)
             .ToList();
+    }
 
-    public EventItem? GetEvent(Guid id, int userId) =>
-        Events.FirstOrDefault(e => e.Id == id && e.UserId == userId);
+    public EventItem? GetEvent(Guid id, int userId)
+    {
+        return Events.FirstOrDefault(e => e.Id == id && e.UserId == userId);
+    }
 
-    public void AddEvent(EventItem item) => Events.Add(item);
+    public void AddEvent(EventItem item)
+    {
+        Events.Add(item);
+    }
 
     public void UpdateEvent(EventItem item)
     {
@@ -319,16 +356,23 @@ internal sealed class FakeDataRepository : IDataRepository
         Events.RemoveAll(e => e.Id == id && e.UserId == userId);
     }
 
-    public List<Announcement> GetAnnouncements(int take) =>
-        Announcements
+    public List<Announcement> GetAnnouncements(int take)
+    {
+        return Announcements
             .OrderByDescending(a => a.CreatedAt)
             .Take(take)
             .ToList();
+    }
 
-    public List<Announcement> GetAllAnnouncements() =>
-        Announcements.OrderByDescending(a => a.CreatedAt).ToList();
+    public List<Announcement> GetAllAnnouncements()
+    {
+        return Announcements.OrderByDescending(a => a.CreatedAt).ToList();
+    }
 
-    public Announcement? GetAnnouncement(Guid id) => Announcements.FirstOrDefault(a => a.Id == id);
+    public Announcement? GetAnnouncement(Guid id)
+    {
+        return Announcements.FirstOrDefault(a => a.Id == id);
+    }
 
     public Announcement AddAnnouncement(Announcement announcement)
     {

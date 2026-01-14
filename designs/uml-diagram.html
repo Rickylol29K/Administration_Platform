@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AdministrationPlat UML Diagram</title>
+  <style>
+    :root {
+      --bg: #ffffff;
+      --ink: #111111;
+      --line: #222222;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: "Arial", sans-serif;
+      background: #f6f6f6;
+      color: var(--ink);
+    }
+
+    .page {
+      padding: 24px;
+    }
+
+    .title {
+      font-size: 20px;
+      font-weight: 600;
+      margin: 0 0 16px;
+    }
+
+    .diagram {
+      position: relative;
+      width: 1200px;
+      height: 780px;
+      border: 1px solid var(--line);
+      background: var(--bg);
+      margin: 0 auto;
+    }
+
+    .class-box {
+      position: absolute;
+      width: 230px;
+      background: #ffffff;
+      border: 1px solid var(--line);
+    }
+
+    .class-title {
+      padding: 6px 8px;
+      background: #e9e9e9;
+      font-size: 14px;
+      font-weight: 700;
+    }
+
+    .class-body {
+      padding: 6px 8px 8px;
+      font-size: 12px;
+      line-height: 1.35;
+    }
+
+    .attr span {
+      color: #555555;
+    }
+
+    svg {
+      position: absolute;
+      inset: 0;
+      pointer-events: none;
+    }
+
+    .note {
+      position: absolute;
+      right: 12px;
+      bottom: 8px;
+      font-size: 11px;
+      color: #666666;
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1 class="title">Administration Platform - UML Class Diagram</h1>
+    <div class="diagram">
+      <!-- Class boxes -->
+      <div class="class-box" style="left: 40px; top: 60px;">
+        <div class="class-title">User</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">Username <span>: string</span></div>
+          <div class="attr">Password <span>: string</span></div>
+          <div class="attr">IsAdmin <span>: bool</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 320px; top: 60px;">
+        <div class="class-title">SchoolClass</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">Name <span>: string</span></div>
+          <div class="attr">Room <span>: string?</span></div>
+          <div class="attr">Description <span>: string?</span></div>
+          <div class="attr">TeacherId <span>: int</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 600px; top: 60px;">
+        <div class="class-title">ClassEnrollment</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">StudentId <span>: int</span></div>
+          <div class="attr">SchoolClassId <span>: int</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 880px; top: 60px;">
+        <div class="class-title">Student</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">FirstName <span>: string</span></div>
+          <div class="attr">LastName <span>: string</span></div>
+          <div class="attr">Email <span>: string?</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 320px; top: 300px;">
+        <div class="class-title">AttendanceRecord</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">StudentId <span>: int</span></div>
+          <div class="attr">SchoolClassId <span>: int</span></div>
+          <div class="attr">Date <span>: date</span></div>
+          <div class="attr">IsPresent <span>: bool</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 600px; top: 300px;">
+        <div class="class-title">GradeRecord</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: int</span></div>
+          <div class="attr">StudentId <span>: int</span></div>
+          <div class="attr">SchoolClassId <span>: int</span></div>
+          <div class="attr">Assessment <span>: string</span></div>
+          <div class="attr">Score <span>: decimal?</span></div>
+          <div class="attr">MaxScore <span>: decimal?</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 40px; top: 300px;">
+        <div class="class-title">Announcement</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: guid</span></div>
+          <div class="attr">Title <span>: string</span></div>
+          <div class="attr">Body <span>: string?</span></div>
+          <div class="attr">CreatedAt <span>: datetime</span></div>
+          <div class="attr">CreatedByUserId <span>: int</span></div>
+        </div>
+      </div>
+
+      <div class="class-box" style="left: 880px; top: 300px;">
+        <div class="class-title">EventItem</div>
+        <div class="class-body">
+          <div class="attr">Id <span>: guid</span></div>
+          <div class="attr">Title <span>: string</span></div>
+          <div class="attr">Description <span>: string?</span></div>
+          <div class="attr">Location <span>: string?</span></div>
+          <div class="attr">Time <span>: string?</span></div>
+          <div class="attr">Day <span>: int</span></div>
+          <div class="attr">Month <span>: int</span></div>
+          <div class="attr">Year <span>: int</span></div>
+          <div class="attr">UserId <span>: int</span></div>
+        </div>
+      </div>
+
+      <!-- Connectors -->
+      <svg viewBox="0 0 1200 780" preserveAspectRatio="none">
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="6" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L6,3 z" fill="var(--line)" />
+          </marker>
+        </defs>
+
+        <!-- User -> SchoolClass (Teacher) -->
+        <line x1="270" y1="110" x2="320" y2="110" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+        <text x="280" y="96" font-size="11" fill="#555555">1</text>
+        <text x="305" y="96" font-size="11" fill="#555555">0..*</text>
+
+        <!-- SchoolClass -> ClassEnrollment -->
+        <line x1="550" y1="110" x2="600" y2="110" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+        <text x="560" y="96" font-size="11" fill="#555555">1</text>
+        <text x="585" y="96" font-size="11" fill="#555555">0..*</text>
+
+        <!-- Student -> ClassEnrollment -->
+        <line x1="880" y1="130" x2="830" y2="130" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+        <text x="840" y="116" font-size="11" fill="#555555">1</text>
+        <text x="860" y="116" font-size="11" fill="#555555">0..*</text>
+
+        <!-- Student -> AttendanceRecord -->
+        <line x1="980" y1="200" x2="435" y2="300" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- SchoolClass -> AttendanceRecord -->
+        <line x1="435" y1="200" x2="435" y2="300" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- Student -> GradeRecord -->
+        <line x1="980" y1="200" x2="715" y2="300" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- SchoolClass -> GradeRecord -->
+        <line x1="435" y1="200" x2="715" y2="300" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- User -> EventItem -->
+        <line x1="155" y1="200" x2="880" y2="360" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+
+        <!-- User -> Announcement -->
+        <line x1="155" y1="200" x2="155" y2="300" stroke="var(--line)" stroke-width="1.5" marker-end="url(#arrow)" />
+      </svg>
+
+      <div class="note">Basic UML based on DAL models.</div>
+    </div>
+  </div>
+</body>
+</html>

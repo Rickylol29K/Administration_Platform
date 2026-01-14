@@ -1,20 +1,24 @@
 using DAL;
 using Logic;
 
-var builder = WebApplication.CreateBuilder(args);
+WebApplicationBuilder builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorPages();
 
 builder.Services.AddSingleton<IDataRepository>(_ =>
 {
-    var connectionString = builder.Configuration.GetConnectionString("DefaultConnection")
-                           ?? throw new InvalidOperationException("Missing DefaultConnection connection string.");
+    string? connectionString = builder.Configuration.GetConnectionString("DefaultConnection");
+    if (string.IsNullOrWhiteSpace(connectionString))
+    {
+        throw new InvalidOperationException("Missing DefaultConnection connection string.");
+    }
+
     return new SqlDataRepository(connectionString);
 });
 builder.Services.AddSingleton<ILogicService>(sp =>
 {
-    var repository = sp.GetRequiredService<IDataRepository>();
+    IDataRepository repository = sp.GetRequiredService<IDataRepository>();
     return new ApplicationLogic(repository);
 });
 
@@ -26,8 +30,7 @@ builder.Services.AddSession(options =>
     options.Cookie.IsEssential = true;
 });
 
-
-var app = builder.Build();
+WebApplication app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

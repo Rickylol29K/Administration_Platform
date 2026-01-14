@@ -10,7 +10,13 @@ public class ErrorModel : PageModel
 {
     public string? RequestId { get; set; }
 
-    public bool ShowRequestId => !string.IsNullOrEmpty(RequestId);
+    public bool ShowRequestId
+    {
+        get
+        {
+            return !string.IsNullOrEmpty(RequestId);
+        }
+    }
 
     private readonly ILogger<ErrorModel> _logger;
 

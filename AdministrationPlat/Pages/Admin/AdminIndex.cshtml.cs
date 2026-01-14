@@ -1,5 +1,6 @@
 using AdministrationPlat.Models;
 using Logic;
+using Logic.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -75,7 +76,7 @@ public class AdminIndex : PageModel
             return RedirectToPage("/Index");
         }
 
-        var result = _logic.Register(NewTeacherUsername, NewTeacherPassword, false);
+        OperationResult<User> result = _logic.Register(NewTeacherUsername, NewTeacherPassword, false);
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Error ?? "Unable to create teacher account.");
@@ -107,7 +108,7 @@ public class AdminIndex : PageModel
             return Page();
         }
 
-        var teacher = _logic.GetUserById(SelectedTeacherId);
+        User? teacher = _logic.GetUserById(SelectedTeacherId);
         if (teacher == null || teacher.IsAdmin)
         {
             ModelState.AddModelError(nameof(SelectedTeacherId), "Selected teacher is not valid.");
@@ -115,7 +116,7 @@ public class AdminIndex : PageModel
             return Page();
         }
 
-        var result = _logic.CreateClass(SelectedTeacherId, NewClassName, NewClassRoom, NewClassDescription);
+        OperationResult<SchoolClass> result = _logic.CreateClass(SelectedTeacherId, NewClassName, NewClassRoom, NewClassDescription);
         if (!result.Success || result.Value == null)
         {
             ModelState.AddModelError(nameof(NewClassName), result.Error ?? "Unable to create class.");
@@ -148,7 +149,7 @@ public class AdminIndex : PageModel
             return Page();
         }
 
-        var result = _logic.AddStudentToClassAsAdmin(
+        ClassMembershipResult result = _logic.AddStudentToClassAsAdmin(
             SelectedClassId,
             NewStudentFirstName,
             NewStudentLastName,
@@ -174,12 +175,12 @@ public class AdminIndex : PageModel
 
     public IActionResult OnPostAddAnnouncement()
     {
-        if (!TryGetAdminUserId(out var adminId))
+        if (!TryGetAdminUserId(out int adminId))
         {
             return RedirectToPage("/Index");
         }
 
-        var result = _logic.CreateAnnouncement(adminId, AnnouncementTitle, AnnouncementBody);
+        OperationResult<Announcement> result = _logic.CreateAnnouncement(adminId, AnnouncementTitle, AnnouncementBody);
         if (!result.Success)
         {
             ModelState.AddModelError(nameof(AnnouncementTitle), result.Error ?? "Unable to create announcement.");
@@ -204,7 +205,7 @@ public class AdminIndex : PageModel
             return RedirectToPage("/Index");
         }
 
-        var result = _logic.DeleteAnnouncement(announcementId);
+        OperationResult<bool> result = _logic.DeleteAnnouncement(announcementId);
         if (!result.Success)
         {
             ModelState.AddModelError(string.Empty, result.Error ?? "Unable to remove announcement.");
@@ -220,8 +221,8 @@ public class AdminIndex : PageModel
 
     private bool TryGetAdminUserId(out int adminId)
     {
-        var userId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? userId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!userId.HasValue || !isAdmin)
         {
@@ -238,6 +239,12 @@ public class AdminIndex : PageModel
         Teachers = _logic.GetTeachers();
         Classes = _logic.GetAllClasses();
         Announcements = _logic.GetAllAnnouncements();
-        TeacherLookup = Teachers.ToDictionary(t => t.Id, t => t.Username);
+        Dictionary<int, string> lookup = new Dictionary<int, string>();
+        foreach (User teacher in Teachers)
+        {
+            lookup[teacher.Id] = teacher.Username;
+        }
+
+        TeacherLookup = lookup;
     }
 }

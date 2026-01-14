@@ -45,10 +45,6 @@
                 <label asp-for="AssessmentDate">Assessment date</label>
                 <input asp-for="AssessmentDate" type="date" />
             </div>
-            <div>
-                <label asp-for="MaxScore">Max score (optional)</label>
-                <input asp-for="MaxScore" type="number" step="0.01" min="0" />
-            </div>
         </div>
 
         <button type="submit">Show students</button>
@@ -68,8 +64,6 @@
                 <input type="hidden" asp-for="SelectedClassId" />
                 <input type="hidden" asp-for="AssessmentName" />
                 <input type="hidden" asp-for="AssessmentDate" />
-                <input type="hidden" asp-for="MaxScore" />
-
                 <div class="grades-table">
                     <table>
                         <thead>
@@ -88,10 +82,10 @@
                                         @Model.StudentGrades[i].StudentName
                                     </td>
                                     <td>
-                                        <input asp-for="StudentGrades[i].Score" type="number" step="0.01" min="0" />
+                                        <input asp-for="StudentGrades[i].Score" type="number" step="0.01" min="0" required />
                                     </td>
                                     <td>
-                                        <input asp-for="StudentGrades[i].Comment" />
+                                        <input asp-for="StudentGrades[i].Comment" required />
                                     </td>
                                 </tr>
                             }

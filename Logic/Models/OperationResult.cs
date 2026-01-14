@@ -6,7 +6,13 @@ public class OperationResult<T>
     public string? Error { get; init; }
     public T? Value { get; init; }
 
-    public static OperationResult<T> Ok(T value) => new() { Success = true, Value = value };
+    public static OperationResult<T> Ok(T value)
+    {
+        return new OperationResult<T> { Success = true, Value = value };
+    }
 
-    public static OperationResult<T> Fail(string error) => new() { Success = false, Error = error };
+    public static OperationResult<T> Fail(string error)
+    {
+        return new OperationResult<T> { Success = false, Error = error };
+    }
 }

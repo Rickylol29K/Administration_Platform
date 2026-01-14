@@ -1,40 +1,17 @@
+using System;
 using AdministrationPlat.Models;
 using AdministrationPlatformTesting.Infrastructure;
 using Logic;
 using Logic.Models;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
-namespace AdministrationPlatformTesting.Logic;
+namespace AdministrationPlatformTesting;
 
 [TestClass]
-public class AttendanceLogicTests
+public class GradingTests
 {
     [TestMethod]
-    public void BuildAttendanceRoster_MapsExistingAttendance()
-    {
-        var repository = new FakeDataRepository();
-        var cls = repository.AddClass(new SchoolClass { Name = "Math", TeacherId = 1 });
-        var student = repository.AddStudent(new Student { FirstName = "Sam", LastName = "Jones" });
-        repository.AddEnrollment(student.Id, cls.Id);
-        repository.AttendanceRecords.Add(new AttendanceRecord
-        {
-            Id = 1,
-            StudentId = student.Id,
-            SchoolClassId = cls.Id,
-            Date = DateTime.Today,
-            IsPresent = true
-        });
-        var logic = new ApplicationLogic(repository);
-
-        var roster = logic.BuildAttendanceRoster(cls.Id, DateTime.Today);
-
-        Assert.IsTrue(roster.Success);
-        Assert.AreEqual(1, roster.Value?.Students.Count);
-        Assert.IsTrue(roster.Value?.Students[0].IsPresent ?? false);
-    }
-
-    [TestMethod]
-    public void SaveAttendance_PersistsRecords()
+    public void SaveGrades_SavesRecords()
     {
         var repository = new FakeDataRepository();
         var cls = repository.AddClass(new SchoolClass { Name = "Math", TeacherId = 1 });
@@ -42,12 +19,27 @@ public class AttendanceLogicTests
         repository.AddEnrollment(student.Id, cls.Id);
         var logic = new ApplicationLogic(repository);
 
-        var result = logic.SaveAttendance(cls.Id, DateTime.Today, new List<StudentAttendance>
+        var result = logic.SaveGrades(cls.Id, "Quiz 1", DateTime.Today, null, new[]
         {
-            new() { StudentId = student.Id, IsPresent = true }
+            new StudentGradeEntry { StudentId = student.Id, Score = 9m, Comment = "Great" }
         });
 
         Assert.IsTrue(result.Success);
-        Assert.AreEqual(1, repository.AttendanceRecords.Count);
+        Assert.AreEqual(1, repository.GradeRecords.Count);
+    }
+
+    [TestMethod]
+    public void BuildGradeSheet_ForClass_ReturnsEntries()
+    {
+        var repository = new FakeDataRepository();
+        var cls = repository.AddClass(new SchoolClass { Name = "Math", TeacherId = 1 });
+        var student = repository.AddStudent(new Student { FirstName = "Sam", LastName = "Jones" });
+        repository.AddEnrollment(student.Id, cls.Id);
+        var logic = new ApplicationLogic(repository);
+
+        var result = logic.BuildGradeSheet(cls.Id, "Quiz 1", DateTime.Today);
+
+        Assert.IsTrue(result.Success);
+        Assert.AreEqual(1, result.Value?.Entries.Count);
     }
 }

@@ -20,7 +20,13 @@ public class Student
     public string? Email { get; set; }
 
     [NotMapped]
-    public string FullName => $"{FirstName} {LastName}".Trim();
+    public string FullName
+    {
+        get
+        {
+            return $"{FirstName} {LastName}".Trim();
+        }
+    }
 
     public ICollection<ClassEnrollment> Enrollments { get; set; } = new List<ClassEnrollment>();
 
