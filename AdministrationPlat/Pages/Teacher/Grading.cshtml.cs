@@ -30,14 +30,11 @@ public class Grading : PageModel
     public DateTime AssessmentDate { get; set; } = DateTime.Today;
 
     [BindProperty]
-    public decimal? MaxScore { get; set; }
-
-    [BindProperty]
     public List<StudentGradeEntry> StudentGrades { get; set; } = new();
 
     public IActionResult OnGet()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -50,7 +47,7 @@ public class Grading : PageModel
 
     public IActionResult OnPostLoad()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -80,7 +77,7 @@ public class Grading : PageModel
 
     public IActionResult OnPostSave()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -88,7 +85,10 @@ public class Grading : PageModel
 
         LoadClasses(userId);
         AssessmentDate = AssessmentDate.Date;
-        StudentGrades ??= new List<StudentGradeEntry>();
+        if (StudentGrades == null)
+        {
+            StudentGrades = new List<StudentGradeEntry>();
+        }
 
         if (SelectedClassId == 0)
         {
@@ -104,11 +104,34 @@ public class Grading : PageModel
 
         AssessmentName = AssessmentName.Trim();
 
-        var result = _logic.SaveGrades(
+        bool hasEntryErrors = false;
+        for (int i = 0; i < StudentGrades.Count; i++)
+        {
+            if (StudentGrades[i].Score == null)
+            {
+                ModelState.AddModelError($"StudentGrades[{i}].Score", "Score is required.");
+                hasEntryErrors = true;
+            }
+
+            if (string.IsNullOrWhiteSpace(StudentGrades[i].Comment))
+            {
+                ModelState.AddModelError($"StudentGrades[{i}].Comment", "Comment is required.");
+                hasEntryErrors = true;
+            }
+        }
+
+        if (hasEntryErrors)
+        {
+            ActiveClassName = AvailableClasses.Find(c => c.Id == SelectedClassId)?.Name ?? string.Empty;
+            SheetLoaded = true;
+            return Page();
+        }
+
+        OperationResult<GradeSheet> result = _logic.SaveGrades(
             SelectedClassId,
             AssessmentName,
             AssessmentDate,
-            MaxScore,
+            null,
             StudentGrades);
 
         if (result.Success && result.Value != null)
@@ -131,7 +154,7 @@ public class Grading : PageModel
 
     private void FillGradeSheet()
     {
-        var sheetResult = _logic.BuildGradeSheet(SelectedClassId, AssessmentName, AssessmentDate);
+        OperationResult<GradeSheet> sheetResult = _logic.BuildGradeSheet(SelectedClassId, AssessmentName, AssessmentDate);
 
         if (!sheetResult.Success || sheetResult.Value == null)
         {
@@ -146,8 +169,8 @@ public class Grading : PageModel
 
     private IActionResult? EnsureTeacher(out int userId)
     {
-        var sessionUserId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? sessionUserId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!sessionUserId.HasValue)
         {

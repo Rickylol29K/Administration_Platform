@@ -1,5 +1,6 @@
 using AdministrationPlat.Models;
 using Logic;
+using Logic.Models;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
@@ -45,7 +46,7 @@ public class Classes : PageModel
 
     public IActionResult OnGet()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -57,7 +58,7 @@ public class Classes : PageModel
 
     public IActionResult OnPostAddClass()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -70,7 +71,7 @@ public class Classes : PageModel
 
     public IActionResult OnPostShowOverlay(int classId)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -78,7 +79,7 @@ public class Classes : PageModel
 
         SelectedClassId = classId;
         LoadTeacherClasses(userId);
-        var overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId);
+        OperationResult<ClassOverlay> overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId);
         if (!overlayResult.Success || overlayResult.Value?.ActiveClass == null)
         {
             ModelState.AddModelError(string.Empty, overlayResult.Error ?? "Unable to load the requested class.");
@@ -95,7 +96,7 @@ public class Classes : PageModel
 
     public IActionResult OnPostAddStudent()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -110,7 +111,7 @@ public class Classes : PageModel
 
     public IActionResult OnPostRemoveStudent(int enrollmentId)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -124,7 +125,7 @@ public class Classes : PageModel
 
     public IActionResult OnPostHideOverlay()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -142,7 +143,7 @@ public class Classes : PageModel
 
     private void LoadOverlay(int userId, int classId)
     {
-        var overlay = _logic.LoadClassOverlay(classId, userId);
+        OperationResult<ClassOverlay> overlay = _logic.LoadClassOverlay(classId, userId);
         if (overlay.Success && overlay.Value != null)
         {
             ActiveClass = overlay.Value.ActiveClass;
@@ -152,8 +153,8 @@ public class Classes : PageModel
 
     private IActionResult? EnsureTeacher(out int userId)
     {
-        var sessionUserId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? sessionUserId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!sessionUserId.HasValue)
         {

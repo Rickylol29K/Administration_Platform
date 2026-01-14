@@ -23,7 +23,7 @@ public class TeacherIndex : PageModel
 
     public IActionResult OnGet()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -40,7 +40,7 @@ public class TeacherIndex : PageModel
 
     public IActionResult OnPostDeleteEvent(Guid id)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -59,8 +59,8 @@ public class TeacherIndex : PageModel
 
     private IActionResult? EnsureTeacher(out int userId)
     {
-        var sessionUserId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? sessionUserId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!sessionUserId.HasValue)
         {

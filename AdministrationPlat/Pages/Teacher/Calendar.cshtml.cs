@@ -21,19 +21,30 @@ public class CalendarModel : PageModel
     public string MonthName { get; private set; } = string.Empty;
     public int Month { get; private set; }
 
-    [BindProperty] public bool ShowOverlay { get; set; }
-    [BindProperty] public int SelectedDay { get; set; }
-    [BindProperty] public int SelectedMonth { get; set; }
-    [BindProperty] public int SelectedYear { get; set; }
-    [BindProperty] public EventItem NewEvent { get; set; } = new();
-    [BindProperty] public Guid EditingId { get; set; }
+    [BindProperty]
+    public bool ShowOverlay { get; set; }
+
+    [BindProperty]
+    public int SelectedDay { get; set; }
+
+    [BindProperty]
+    public int SelectedMonth { get; set; }
+
+    [BindProperty]
+    public int SelectedYear { get; set; }
+
+    [BindProperty]
+    public EventItem NewEvent { get; set; } = new();
+
+    [BindProperty]
+    public Guid EditingId { get; set; }
 
     public List<EventItem> MonthEvents { get; private set; } = new();
     public List<EventItem> SelectedDayEvents { get; private set; } = new();
 
     public IActionResult OnGet()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -48,7 +59,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostShowOverlay(int selectedDay, int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -63,7 +74,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostHideOverlay(int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -77,7 +88,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostPreviousMonth(int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -93,7 +104,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostNextMonth(int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -109,7 +120,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostAddEvent(int selectedDay, int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -119,7 +130,7 @@ public class CalendarModel : PageModel
         SelectedDay = selectedDay;
         LoadCalendar(userId);
 
-        var toCreate = new EventItem
+        EventItem toCreate = new EventItem
         {
             Id = Guid.NewGuid(),
             Title = NewEvent.Title,
@@ -131,7 +142,7 @@ public class CalendarModel : PageModel
             Year = SelectedYear
         };
 
-        var result = _logic.CreateEvent(userId, toCreate);
+        OperationResult<EventItem> result = _logic.CreateEvent(userId, toCreate);
         if (!result.Success)
         {
             ModelState.AddModelError("NewEvent.Title", result.Error ?? "Event title is required.");
@@ -148,7 +159,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostDeleteEvent(Guid id, int selectedDay, int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -167,7 +178,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostEditEvent(Guid id, int selectedDay, int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -177,7 +188,7 @@ public class CalendarModel : PageModel
         SelectedDay = selectedDay;
         LoadCalendar(userId);
 
-        var ev = _logic.GetEvent(id, userId);
+        EventItem? ev = _logic.GetEvent(id, userId);
         if (ev != null)
         {
             EditingId = id;
@@ -202,7 +213,7 @@ public class CalendarModel : PageModel
 
     public IActionResult OnPostUpdateEvent(int selectedDay, int selectedMonth, int selectedYear)
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -212,7 +223,7 @@ public class CalendarModel : PageModel
         SelectedDay = selectedDay;
         LoadCalendar(userId);
 
-        var updated = new EventItem
+        EventItem updated = new EventItem
         {
             Id = NewEvent.Id,
             Title = NewEvent.Title,
@@ -224,7 +235,7 @@ public class CalendarModel : PageModel
             Year = SelectedYear
         };
 
-        var result = _logic.UpdateEventDetails(userId, updated);
+        OperationResult<EventItem> result = _logic.UpdateEventDetails(userId, updated);
         if (!result.Success)
         {
             ModelState.AddModelError("NewEvent.Title", result.Error ?? "Unable to update event.");
@@ -248,7 +259,7 @@ public class CalendarModel : PageModel
             SelectedYear = DateTime.Today.Year;
         }
 
-        var view = _logic.BuildCalendarView(userId, SelectedYear, SelectedMonth, SelectedDay);
+        CalendarView view = _logic.BuildCalendarView(userId, SelectedYear, SelectedMonth, SelectedDay);
 
         Year = view.Calendar.Year;
         Month = view.Calendar.Month;
@@ -273,7 +284,7 @@ public class CalendarModel : PageModel
             SelectedYear = DateTime.Today.Year;
         }
 
-        var date = new DateTime(SelectedYear, SelectedMonth, 1).AddMonths(delta);
+        DateTime date = new DateTime(SelectedYear, SelectedMonth, 1).AddMonths(delta);
         SelectedMonth = date.Month;
         SelectedYear = date.Year;
     }
@@ -293,8 +304,8 @@ public class CalendarModel : PageModel
 
     private IActionResult? EnsureTeacher(out int userId)
     {
-        var sessionUserId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? sessionUserId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!sessionUserId.HasValue)
         {

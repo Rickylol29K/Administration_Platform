@@ -31,7 +31,7 @@ public class Attendance : PageModel
 
     public IActionResult OnGet()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -44,7 +44,7 @@ public class Attendance : PageModel
 
     public IActionResult OnPostLoad()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -66,7 +66,7 @@ public class Attendance : PageModel
 
     public IActionResult OnPostSave()
     {
-        var redirect = EnsureTeacher(out var userId);
+        IActionResult? redirect = EnsureTeacher(out int userId);
         if (redirect != null)
         {
             return redirect;
@@ -74,7 +74,10 @@ public class Attendance : PageModel
 
         LoadClasses(userId);
         SelectedDate = SelectedDate.Date;
-        StudentAttendances ??= new List<StudentAttendance>();
+        if (StudentAttendances == null)
+        {
+            StudentAttendances = new List<StudentAttendance>();
+        }
 
         if (SelectedClassId == 0)
         {
@@ -82,7 +85,7 @@ public class Attendance : PageModel
             return Page();
         }
 
-        var result = _logic.SaveAttendance(SelectedClassId, SelectedDate, StudentAttendances);
+        OperationResult<AttendanceRoster> result = _logic.SaveAttendance(SelectedClassId, SelectedDate, StudentAttendances);
 
         TempData["AttendanceSaved"] = "Attendance saved.";
         if (result.Success && result.Value != null)
@@ -104,7 +107,7 @@ public class Attendance : PageModel
 
     private void FillRoster()
     {
-        var rosterResult = _logic.BuildAttendanceRoster(SelectedClassId, SelectedDate);
+        OperationResult<AttendanceRoster> rosterResult = _logic.BuildAttendanceRoster(SelectedClassId, SelectedDate);
         if (!rosterResult.Success || rosterResult.Value == null)
         {
             ActiveClassName = string.Empty;
@@ -118,8 +121,8 @@ public class Attendance : PageModel
 
     private IActionResult? EnsureTeacher(out int userId)
     {
-        var sessionUserId = HttpContext.Session.GetInt32("UserId");
-        var isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
+        int? sessionUserId = HttpContext.Session.GetInt32("UserId");
+        bool isAdmin = HttpContext.Session.GetInt32("IsAdmin") == 1;
 
         if (!sessionUserId.HasValue)
         {

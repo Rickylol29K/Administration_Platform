@@ -10,14 +10,45 @@ public class ApplicationDbContext : DbContext
     {
     }
 
-    public DbSet<User> Users => Set<User>();
-    public DbSet<SchoolClass> Classes => Set<SchoolClass>();
-    public DbSet<Student> Students => Set<Student>();
-    public DbSet<ClassEnrollment> Enrollments => Set<ClassEnrollment>();
-    public DbSet<AttendanceRecord> AttendanceRecords => Set<AttendanceRecord>();
-    public DbSet<GradeRecord> GradeRecords => Set<GradeRecord>();
-    public DbSet<EventItem> TeacherEvents => Set<EventItem>();
-    public DbSet<Announcement> Announcements => Set<Announcement>();
+    public DbSet<User> Users
+    {
+        get { return Set<User>(); }
+    }
+
+    public DbSet<SchoolClass> Classes
+    {
+        get { return Set<SchoolClass>(); }
+    }
+
+    public DbSet<Student> Students
+    {
+        get { return Set<Student>(); }
+    }
+
+    public DbSet<ClassEnrollment> Enrollments
+    {
+        get { return Set<ClassEnrollment>(); }
+    }
+
+    public DbSet<AttendanceRecord> AttendanceRecords
+    {
+        get { return Set<AttendanceRecord>(); }
+    }
+
+    public DbSet<GradeRecord> GradeRecords
+    {
+        get { return Set<GradeRecord>(); }
+    }
+
+    public DbSet<EventItem> TeacherEvents
+    {
+        get { return Set<EventItem>(); }
+    }
+
+    public DbSet<Announcement> Announcements
+    {
+        get { return Set<Announcement>(); }
+    }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
