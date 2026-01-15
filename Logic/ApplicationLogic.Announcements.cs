@@ -17,7 +17,15 @@ public partial class ApplicationLogic
 
     public OperationResult<Announcement> CreateAnnouncement(int createdByUserId, string title, string? body)
     {
-        string trimmedTitle = (title ?? string.Empty).Trim();
+        string trimmedTitle;
+        if (title == null)
+        {
+            trimmedTitle = string.Empty;
+        }
+        else
+        {
+            trimmedTitle = title.Trim();
+        }
         if (string.IsNullOrWhiteSpace(trimmedTitle))
         {
             return OperationResult<Announcement>.Fail("Announcement title is required.");

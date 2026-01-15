@@ -145,7 +145,16 @@ public class CalendarModel : PageModel
         OperationResult<EventItem> result = _logic.CreateEvent(userId, toCreate);
         if (!result.Success)
         {
-            ModelState.AddModelError("NewEvent.Title", result.Error ?? "Event title is required.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Event title is required.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError("NewEvent.Title", message);
             ShowOverlay = true;
             LoadCalendar(userId);
             return Page();
@@ -238,7 +247,16 @@ public class CalendarModel : PageModel
         OperationResult<EventItem> result = _logic.UpdateEventDetails(userId, updated);
         if (!result.Success)
         {
-            ModelState.AddModelError("NewEvent.Title", result.Error ?? "Unable to update event.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Unable to update event.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError("NewEvent.Title", message);
             ShowOverlay = true;
             LoadCalendar(userId);
             return Page();

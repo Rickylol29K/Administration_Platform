@@ -7,9 +7,28 @@ public partial class ApplicationLogic
 {
     public OperationResult<User> Login(string username, string password)
     {
-        string trimmedUsername = (username ?? string.Empty).Trim();
-        string trimmedPassword = (password ?? string.Empty).Trim();
+        //remove spaces from either front or the end of entered strings
+        string trimmedUsername;
+        if (username == null)
+        {
+            trimmedUsername = string.Empty;
+        }
+        else
+        {
+            trimmedUsername = username.Trim();
+        }
 
+        string trimmedPassword;
+        if (password == null)
+        {
+            trimmedPassword = string.Empty;
+        }
+        else
+        {
+            trimmedPassword = password.Trim();
+        }
+
+        //check if bpth username and password are entered
         if (string.IsNullOrEmpty(trimmedUsername) || string.IsNullOrEmpty(trimmedPassword))
         {
             return OperationResult<User>.Fail("Enter both username and password.");
@@ -26,8 +45,25 @@ public partial class ApplicationLogic
 
     public OperationResult<User> Register(string username, string password, bool isAdmin)
     {
-        string trimmedUsername = (username ?? string.Empty).Trim();
-        string trimmedPassword = (password ?? string.Empty).Trim();
+        string trimmedUsername;
+        if (username == null)
+        {
+            trimmedUsername = string.Empty;
+        }
+        else
+        {
+            trimmedUsername = username.Trim();
+        }
+
+        string trimmedPassword;
+        if (password == null)
+        {
+            trimmedPassword = string.Empty;
+        }
+        else
+        {
+            trimmedPassword = password.Trim();
+        }
 
         if (string.IsNullOrEmpty(trimmedUsername) || string.IsNullOrEmpty(trimmedPassword))
         {

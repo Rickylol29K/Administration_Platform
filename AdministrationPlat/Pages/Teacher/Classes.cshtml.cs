@@ -82,7 +82,16 @@ public class Classes : PageModel
         OperationResult<ClassOverlay> overlayResult = _logic.LoadClassOverlay(SelectedClassId, userId);
         if (!overlayResult.Success || overlayResult.Value?.ActiveClass == null)
         {
-            ModelState.AddModelError(string.Empty, overlayResult.Error ?? "Unable to load the requested class.");
+            string message;
+            if (overlayResult.Error == null)
+            {
+                message = "Unable to load the requested class.";
+            }
+            else
+            {
+                message = overlayResult.Error;
+            }
+            ModelState.AddModelError(string.Empty, message);
             ShowOverlay = false;
             return Page();
         }

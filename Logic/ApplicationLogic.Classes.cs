@@ -42,7 +42,15 @@ public partial class ApplicationLogic
 
     public OperationResult<SchoolClass> CreateClass(int teacherId, string name, string? room, string? description)
     {
-        string trimmedName = (name ?? string.Empty).Trim();
+        string trimmedName;
+        if (name == null)
+        {
+            trimmedName = string.Empty;
+        }
+        else
+        {
+            trimmedName = name.Trim();
+        }
         if (string.IsNullOrWhiteSpace(trimmedName))
         {
             return OperationResult<SchoolClass>.Fail("Class name is required.");
@@ -179,7 +187,16 @@ public partial class ApplicationLogic
             _repository.AddEnrollment(student.Id, classId);
         }
 
-        ClassOverlay refreshedOverlay = LoadClassOverlay(classId, teacherId).Value ?? overlayResult.Value;
+        ClassOverlay? loadedOverlay = LoadClassOverlay(classId, teacherId).Value;
+        ClassOverlay refreshedOverlay;
+        if (loadedOverlay == null)
+        {
+            refreshedOverlay = overlayResult.Value;
+        }
+        else
+        {
+            refreshedOverlay = loadedOverlay;
+        }
         string message;
         if (alreadyEnrolled)
         {
@@ -244,7 +261,16 @@ public partial class ApplicationLogic
             _repository.AddEnrollment(student.Id, classId);
         }
 
-        ClassOverlay refreshedOverlay = LoadClassOverlay(classId, null).Value ?? overlayResult.Value;
+        ClassOverlay? loadedOverlay = LoadClassOverlay(classId, null).Value;
+        ClassOverlay refreshedOverlay;
+        if (loadedOverlay == null)
+        {
+            refreshedOverlay = overlayResult.Value;
+        }
+        else
+        {
+            refreshedOverlay = loadedOverlay;
+        }
         string message;
         if (alreadyEnrolled)
         {
@@ -283,12 +309,21 @@ public partial class ApplicationLogic
         string studentName = enrollment.Student == null ? "Student" : enrollment.Student.FullName;
         string className = enrollment.SchoolClass == null ? string.Empty : enrollment.SchoolClass.Name;
         string message = studentName + " removed from " + className + ".";
+        ClassOverlay overlayResult;
+        if (refreshedOverlay == null)
+        {
+            overlayResult = new ClassOverlay { ActiveClass = enrollment.SchoolClass };
+        }
+        else
+        {
+            overlayResult = refreshedOverlay;
+        }
 
         return new ClassMembershipResult
         {
             Success = true,
             Message = message,
-            Overlay = refreshedOverlay ?? new ClassOverlay { ActiveClass = enrollment.SchoolClass },
+            Overlay = overlayResult,
             AlreadyEnrolled = false
         };
     }

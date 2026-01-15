@@ -35,9 +35,22 @@ public partial class SqlDataRepository
 
         command.Parameters.AddWithValue("@first", student.FirstName);
         command.Parameters.AddWithValue("@last", student.LastName);
-        command.Parameters.AddWithValue("@email", (object?)student.Email ?? DBNull.Value);
+        object? emailValue = student.Email;
+        if (emailValue == null)
+        {
+            emailValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@email", emailValue);
 
-        student.Id = (int)(command.ExecuteScalar() ?? 0);
+        object? scalar = command.ExecuteScalar();
+        if (scalar == null || scalar == DBNull.Value)
+        {
+            student.Id = 0;
+        }
+        else
+        {
+            student.Id = (int)scalar;
+        }
         return student;
     }
 

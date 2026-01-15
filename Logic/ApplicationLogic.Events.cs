@@ -37,7 +37,15 @@ public partial class ApplicationLogic
 
     public OperationResult<EventItem> CreateEvent(int userId, EventItem item)
     {
-        string title = (item.Title ?? string.Empty).Trim();
+        string title;
+        if (item.Title == null)
+        {
+            title = string.Empty;
+        }
+        else
+        {
+            title = item.Title.Trim();
+        }
         if (string.IsNullOrWhiteSpace(title))
         {
             return OperationResult<EventItem>.Fail("Event title is required.");
@@ -68,7 +76,15 @@ public partial class ApplicationLogic
             return OperationResult<EventItem>.Fail("Event not found.");
         }
 
-        string title = (item.Title ?? string.Empty).Trim();
+        string title;
+        if (item.Title == null)
+        {
+            title = string.Empty;
+        }
+        else
+        {
+            title = item.Title.Trim();
+        }
         if (string.IsNullOrWhiteSpace(title))
         {
             return OperationResult<EventItem>.Fail("Event title is required.");

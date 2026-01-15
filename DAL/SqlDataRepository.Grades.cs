@@ -102,8 +102,20 @@ public partial class SqlDataRepository
                           Comments = @comments
                       WHERE Id = @id", connection, transaction);
                 update.Parameters.AddWithValue("@score", incoming.Score.Value);
-                update.Parameters.AddWithValue("@maxScore", (object?)maxScore ?? DBNull.Value);
-                update.Parameters.AddWithValue("@comments", (object?)incoming.Comment?.Trim() ?? DBNull.Value);
+                object? maxScoreValue = maxScore;
+                if (maxScoreValue == null)
+                {
+                    maxScoreValue = DBNull.Value;
+                }
+                update.Parameters.AddWithValue("@maxScore", maxScoreValue);
+
+                string? trimmedComment = incoming.Comment == null ? null : incoming.Comment.Trim();
+                object? commentValue = trimmedComment;
+                if (commentValue == null)
+                {
+                    commentValue = DBNull.Value;
+                }
+                update.Parameters.AddWithValue("@comments", commentValue);
                 update.Parameters.AddWithValue("@id", kvp.Value.Id);
                 update.ExecuteNonQuery();
             }
@@ -136,8 +148,20 @@ public partial class SqlDataRepository
             insert.Parameters.AddWithValue("@assessment", assessment);
             insert.Parameters.AddWithValue("@date", date.Date);
             insert.Parameters.AddWithValue("@score", incoming.Score.Value);
-            insert.Parameters.AddWithValue("@maxScore", (object?)maxScore ?? DBNull.Value);
-            insert.Parameters.AddWithValue("@comments", (object?)incoming.Comment?.Trim() ?? DBNull.Value);
+            object? maxScoreValue = maxScore;
+            if (maxScoreValue == null)
+            {
+                maxScoreValue = DBNull.Value;
+            }
+            insert.Parameters.AddWithValue("@maxScore", maxScoreValue);
+
+            string? trimmedComment = incoming.Comment == null ? null : incoming.Comment.Trim();
+            object? commentValue = trimmedComment;
+            if (commentValue == null)
+            {
+                commentValue = DBNull.Value;
+            }
+            insert.Parameters.AddWithValue("@comments", commentValue);
             insert.ExecuteNonQuery();
         }
 

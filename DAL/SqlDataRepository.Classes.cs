@@ -34,11 +34,30 @@ public partial class SqlDataRepository
         using var command = new SqlCommand(sql, connection);
 
         command.Parameters.AddWithValue("@name", schoolClass.Name);
-        command.Parameters.AddWithValue("@room", (object?)schoolClass.Room ?? DBNull.Value);
-        command.Parameters.AddWithValue("@description", (object?)schoolClass.Description ?? DBNull.Value);
+        object? roomValue = schoolClass.Room;
+        if (roomValue == null)
+        {
+            roomValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@room", roomValue);
+
+        object? descriptionValue = schoolClass.Description;
+        if (descriptionValue == null)
+        {
+            descriptionValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@description", descriptionValue);
         command.Parameters.AddWithValue("@teacherId", schoolClass.TeacherId);
 
-        schoolClass.Id = (int)(command.ExecuteScalar() ?? 0);
+        object? scalar = command.ExecuteScalar();
+        if (scalar == null || scalar == DBNull.Value)
+        {
+            schoolClass.Id = 0;
+        }
+        else
+        {
+            schoolClass.Id = (int)scalar;
+        }
         return schoolClass;
     }
 
@@ -87,7 +106,13 @@ public partial class SqlDataRepository
         using var command = new SqlCommand(sql, connection);
         command.Parameters.AddWithValue("@teacherId", teacherId);
 
-        return Convert.ToInt32(command.ExecuteScalar() ?? 0);
+        object? scalar = command.ExecuteScalar();
+        if (scalar == null || scalar == DBNull.Value)
+        {
+            return 0;
+        }
+
+        return Convert.ToInt32(scalar);
     }
 
     public int GetDistinctStudentCount(int teacherId)
@@ -101,6 +126,12 @@ public partial class SqlDataRepository
         using var command = new SqlCommand(sql, connection);
         command.Parameters.AddWithValue("@teacherId", teacherId);
 
-        return Convert.ToInt32(command.ExecuteScalar() ?? 0);
+        object? scalar = command.ExecuteScalar();
+        if (scalar == null || scalar == DBNull.Value)
+        {
+            return 0;
+        }
+
+        return Convert.ToInt32(scalar);
     }
 }
