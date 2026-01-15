@@ -96,7 +96,16 @@ public class Attendance : PageModel
             return Page();
         }
 
-        ModelState.AddModelError(string.Empty, result.Error ?? "Unable to save attendance.");
+        string message;
+        if (result.Error == null)
+        {
+            message = "Unable to save attendance.";
+        }
+        else
+        {
+            message = result.Error;
+        }
+        ModelState.AddModelError(string.Empty, message);
         return Page();
     }
 

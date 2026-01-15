@@ -79,8 +79,15 @@ public partial class SqlDataRepository
 
     private static Student MapStudent(SqlDataReader reader)
     {
-        int? idOrdinal = reader.GetOrdinalSafe("StudentId2");
-        int columnOrdinal = idOrdinal.HasValue ? idOrdinal.Value : reader.GetOrdinal("Id");
+        int columnOrdinal;
+        try
+        {
+            columnOrdinal = reader.GetOrdinal("StudentId2");
+        }
+        catch
+        {
+            columnOrdinal = reader.GetOrdinal("Id");
+        }
         return new Student
         {
             Id = reader.GetInt32(columnOrdinal),
@@ -92,9 +99,19 @@ public partial class SqlDataRepository
 
     private static SchoolClass MapClass(SqlDataReader reader, string? idColumn = null)
     {
+        string columnName;
+        if (string.IsNullOrEmpty(idColumn))
+        {
+            columnName = "Id";
+        }
+        else
+        {
+            columnName = idColumn;
+        }
+
         return new SchoolClass
         {
-            Id = reader.GetInt32(reader.GetOrdinal(idColumn ?? "Id")),
+            Id = reader.GetInt32(reader.GetOrdinal(columnName)),
             Name = reader.GetString(reader.GetOrdinal("Name")),
             Room = GetNullableString(reader, "Room"),
             Description = GetNullableString(reader, "Description"),
@@ -149,9 +166,26 @@ public partial class SqlDataRepository
     {
         command.Parameters.AddWithValue("@id", item.Id);
         command.Parameters.AddWithValue("@title", item.Title);
-        command.Parameters.AddWithValue("@description", (object?)item.Description ?? DBNull.Value);
-        command.Parameters.AddWithValue("@location", (object?)item.Location ?? DBNull.Value);
-        command.Parameters.AddWithValue("@time", (object?)item.Time ?? DBNull.Value);
+        object? descriptionValue = item.Description;
+        if (descriptionValue == null)
+        {
+            descriptionValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@description", descriptionValue);
+
+        object? locationValue = item.Location;
+        if (locationValue == null)
+        {
+            locationValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@location", locationValue);
+
+        object? timeValue = item.Time;
+        if (timeValue == null)
+        {
+            timeValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@time", timeValue);
         command.Parameters.AddWithValue("@day", item.Day);
         command.Parameters.AddWithValue("@month", item.Month);
         command.Parameters.AddWithValue("@year", item.Year);

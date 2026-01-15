@@ -68,7 +68,16 @@ public partial class SqlDataRepository
         command.Parameters.AddWithValue("@password", password);
         command.Parameters.AddWithValue("@isAdmin", isAdmin);
 
-        var id = (int)(command.ExecuteScalar() ?? 0);
+        object? scalar = command.ExecuteScalar();
+        int id;
+        if (scalar == null || scalar == DBNull.Value)
+        {
+            id = 0;
+        }
+        else
+        {
+            id = (int)scalar;
+        }
         return new User { Id = id, Username = username, Password = password, IsAdmin = isAdmin };
     }
 

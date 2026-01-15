@@ -79,7 +79,16 @@ public class AdminIndex : PageModel
         OperationResult<User> result = _logic.Register(NewTeacherUsername, NewTeacherPassword, false);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Error ?? "Unable to create teacher account.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Unable to create teacher account.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError(string.Empty, message);
             LoadAdminData();
             return Page();
         }
@@ -119,7 +128,16 @@ public class AdminIndex : PageModel
         OperationResult<SchoolClass> result = _logic.CreateClass(SelectedTeacherId, NewClassName, NewClassRoom, NewClassDescription);
         if (!result.Success || result.Value == null)
         {
-            ModelState.AddModelError(nameof(NewClassName), result.Error ?? "Unable to create class.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Unable to create class.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError(nameof(NewClassName), message);
             LoadAdminData();
             return Page();
         }
@@ -183,7 +201,16 @@ public class AdminIndex : PageModel
         OperationResult<Announcement> result = _logic.CreateAnnouncement(adminId, AnnouncementTitle, AnnouncementBody);
         if (!result.Success)
         {
-            ModelState.AddModelError(nameof(AnnouncementTitle), result.Error ?? "Unable to create announcement.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Unable to create announcement.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError(nameof(AnnouncementTitle), message);
             LoadAdminData();
             return Page();
         }
@@ -208,7 +235,16 @@ public class AdminIndex : PageModel
         OperationResult<bool> result = _logic.DeleteAnnouncement(announcementId);
         if (!result.Success)
         {
-            ModelState.AddModelError(string.Empty, result.Error ?? "Unable to remove announcement.");
+            string message;
+            if (result.Error == null)
+            {
+                message = "Unable to remove announcement.";
+            }
+            else
+            {
+                message = result.Error;
+            }
+            ModelState.AddModelError(string.Empty, message);
             LoadAdminData();
             return Page();
         }

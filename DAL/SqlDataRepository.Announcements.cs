@@ -72,7 +72,12 @@ public partial class SqlDataRepository
         using var command = new SqlCommand(sql, connection);
         command.Parameters.AddWithValue("@id", announcement.Id);
         command.Parameters.AddWithValue("@title", announcement.Title);
-        command.Parameters.AddWithValue("@body", (object?)announcement.Body ?? DBNull.Value);
+        object? bodyValue = announcement.Body;
+        if (bodyValue == null)
+        {
+            bodyValue = DBNull.Value;
+        }
+        command.Parameters.AddWithValue("@body", bodyValue);
         command.Parameters.AddWithValue("@createdAt", announcement.CreatedAt);
         command.Parameters.AddWithValue("@createdByUserId", announcement.CreatedByUserId);
 

@@ -47,7 +47,6 @@ namespace AdministrationPlat.Pages
                 HttpContext.Session.SetInt32("UserId", result.Value.Id);
                 HttpContext.Session.SetString("Username", result.Value.Username);
                 HttpContext.Session.SetInt32("IsAdmin", result.Value.IsAdmin ? 1 : 0);
-                Message = $"Welcome back, {result.Value.Username}!";
 
                 if (result.Value.IsAdmin)
                 {
@@ -57,7 +56,14 @@ namespace AdministrationPlat.Pages
                 return RedirectToPage("/Teacher/TeacherIndex");
             }
 
-            Message = result.Error ?? "Invalid username or password.";
+            if (result.Error == null)
+            {
+                Message = "Invalid username or password.";
+            }
+            else
+            {
+                Message = result.Error;
+            }
             MessageCssClass = "validation-summary";
             return Page();
         }
@@ -68,7 +74,14 @@ namespace AdministrationPlat.Pages
 
             if (!result.Success)
             {
-                Message = result.Error ?? "Registration failed.";
+                if (result.Error == null)
+                {
+                    Message = "Registration failed.";
+                }
+                else
+                {
+                    Message = result.Error;
+                }
                 MessageCssClass = "validation-summary";
                 return Page();
             }

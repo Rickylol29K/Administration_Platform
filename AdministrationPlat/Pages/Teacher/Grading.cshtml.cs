@@ -122,7 +122,15 @@ public class Grading : PageModel
 
         if (hasEntryErrors)
         {
-            ActiveClassName = AvailableClasses.Find(c => c.Id == SelectedClassId)?.Name ?? string.Empty;
+            var selectedClass = AvailableClasses.Find(c => c.Id == SelectedClassId);
+            if (selectedClass == null || selectedClass.Name == null)
+            {
+                ActiveClassName = string.Empty;
+            }
+            else
+            {
+                ActiveClassName = selectedClass.Name;
+            }
             SheetLoaded = true;
             return Page();
         }
@@ -143,7 +151,16 @@ public class Grading : PageModel
             return Page();
         }
 
-        ModelState.AddModelError(string.Empty, result.Error ?? "Unable to save grades.");
+        string message;
+        if (result.Error == null)
+        {
+            message = "Unable to save grades.";
+        }
+        else
+        {
+            message = result.Error;
+        }
+        ModelState.AddModelError(string.Empty, message);
         return Page();
     }
 

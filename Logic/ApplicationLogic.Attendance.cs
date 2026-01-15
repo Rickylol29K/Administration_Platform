@@ -17,7 +17,16 @@ public partial class ApplicationLogic
 
     public OperationResult<AttendanceRoster> BuildAttendanceRoster(int classId, DateTime date)
     {
-        string className = _repository.GetClassName(classId) ?? string.Empty;
+        string? storedClassName = _repository.GetClassName(classId);
+        string className;
+        if (storedClassName == null)
+        {
+            className = string.Empty;
+        }
+        else
+        {
+            className = storedClassName;
+        }
         List<Student> roster = _repository.GetStudentsForClass(classId);
         List<AttendanceRecord> existingRecords = _repository.GetAttendanceRecords(classId, date);
 
