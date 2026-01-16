@@ -35,57 +35,21 @@ public partial class SqlDataRepository
 
     public void SaveAttendanceRecords(int classId, DateTime date, IEnumerable<(int StudentId, bool IsPresent)> records)
     {
-        var newRecords = records.ToList();
         using var connection = OpenConnection();
         using var transaction = connection.BeginTransaction();
 
-        var existing = new Dictionary<int, (int Id, bool IsPresent)>();
-        using (var select = new SqlCommand(
-                   @"SELECT Id, StudentId, IsPresent 
-                     FROM AttendanceRecords 
+        using (var delete = new SqlCommand(
+                   @"DELETE FROM AttendanceRecords
                      WHERE SchoolClassId = @classId AND [Date] = @date", connection, transaction))
         {
-            select.Parameters.AddWithValue("@classId", classId);
-            select.Parameters.AddWithValue("@date", date.Date);
-
-            using var reader = select.ExecuteReader();
-            while (reader.Read())
-            {
-                var studentId = reader.GetInt32(reader.GetOrdinal("StudentId"));
-                existing[studentId] = (reader.GetInt32(reader.GetOrdinal("Id")),
-                    reader.GetBoolean(reader.GetOrdinal("IsPresent")));
-            }
+            delete.Parameters.AddWithValue("@classId", classId);
+            delete.Parameters.AddWithValue("@date", date.Date);
+            delete.ExecuteNonQuery();
         }
 
-        var lookup = new Dictionary<int, bool>();
-        foreach (var record in newRecords)
+        foreach (var record in records)
         {
-            lookup[record.StudentId] = record.IsPresent;
-        }
-
-        foreach (var kvp in existing)
-        {
-            if (lookup.TryGetValue(kvp.Key, out var isPresent))
-            {
-                using var update = new SqlCommand(
-                    @"UPDATE AttendanceRecords 
-                      SET IsPresent = @present 
-                      WHERE Id = @id", connection, transaction);
-                update.Parameters.AddWithValue("@present", isPresent);
-                update.Parameters.AddWithValue("@id", kvp.Value.Id);
-                update.ExecuteNonQuery();
-            }
-            else
-            {
-                using var delete = new SqlCommand("DELETE FROM AttendanceRecords WHERE Id = @id", connection, transaction);
-                delete.Parameters.AddWithValue("@id", kvp.Value.Id);
-                delete.ExecuteNonQuery();
-            }
-        }
-
-        foreach (var record in newRecords)
-        {
-            if (existing.ContainsKey(record.StudentId))
+            if (record.StudentId <= 0)
             {
                 continue;
             }
